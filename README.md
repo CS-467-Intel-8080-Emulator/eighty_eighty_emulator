@@ -1,2 +1,11 @@
-# cs-467-intel-8080-emulator
-Beep boop! C++ Intel 8080 emulator computer science capstone project at OSU
+# Eighty Eighty Emulator
+
+```sh
+$ git clone https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator
+$ cd eighty_eighty_emulator
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ ./8080
+```
