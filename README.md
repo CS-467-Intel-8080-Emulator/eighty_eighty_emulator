@@ -1,7 +1,7 @@
 # Eighty Eighty Emulator
 
 ```sh
-$ git clone https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/settings/access
+$ git clone https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator
 $ cd eighty_eighty_emulator
 $ mkdir build
 $ cd build
