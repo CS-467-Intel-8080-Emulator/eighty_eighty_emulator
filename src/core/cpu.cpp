@@ -1,6 +1,9 @@
 #include "cpu.hpp"
 #include "memory.hpp"
 
+/*
+Constructor for the CPU class
+ */
 CPU::CPU()
     : a(0), b(0), c(0), d(0), e(0), h(0), l(0),
       pc(0), sp(0), flags(0) 
