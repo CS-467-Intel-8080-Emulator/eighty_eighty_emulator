@@ -1,8 +1,11 @@
-// This is a placeholder file that mimics the shape of an abstract "Machine" class
-// for the purpose of developing the frontend; to be replaced by actual machine
-// implementation.
-
 #include "machine.h"
+
+Machine::Machine() :
+    title{ "Fake Invaders" },
+    display_width{ 224 },
+    display_height{ 256 },
+    framerate{ 60.0 } {
+}
 
 char* Machine::get_title() const {
     return title;
