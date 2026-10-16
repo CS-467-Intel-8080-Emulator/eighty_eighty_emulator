@@ -14,7 +14,13 @@ CPU::CPU()
         table[0x01] = &CPU::op_lxi_b;
         table[0x02] = &CPU::op_stax_b;
         table[0x03] = &CPU::op_inx_b;
+        table[0x3A] = &CPU::op_lda;
+        table[0x32] = &CPU::op_sta;
 
+        // --- MVI group (0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E) ---
+        for (uint8_t opcode = 0x06; opcode <= 0x3E; opcode += 0x08) 
+            table[opcode] = &CPU::op_mvi;
+            
         // --- MOV group (0x40 - 0x7F) ---
         for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++) 
             table[opcode] = &CPU::op_mov;
@@ -54,21 +60,30 @@ CPU::CPU()
 /*
 Helper functions for opcode handlers can be implemented here
 */
- 
+
+// Fetch a byte
+uint8_t CPU::fetch_byte(Memory& memory) {
+    return memory.read(pc++);
+}
+
+// Fetch a word (2 bytes)
+uint16_t CPU::fetch_word(Memory& memory) {
+    uint8_t lo = memory.read(pc++);
+    uint8_t hi = memory.read(pc++);
+    return (hi << 8) | lo;
+}
+
+
 // NOP instruction handler
 uint32_t CPU::op_nop(Memory& memory) {
     return 4;
 }
 
-// LXI B, D16 instruction handler
+// LXI B instruction handler
 uint32_t CPU::op_lxi_b(Memory& memory) {
-    uint8_t lo = memory.read(pc);
-    uint8_t hi = memory.read(pc + 1);
-    pc += 2;
-
-    c = lo;
-    b = hi;
-
+    uint16_t value = fetch_word(memory);
+    c = value & 0xFF;
+    b = value >> 8;
     return 10;
 }
 
@@ -108,12 +123,29 @@ uint32_t CPU::op_adc(Memory& memory) {
     return 4;
 }
 
-// MVI r, D8 instruction handler
+// MVI instruction handler
+uint32_t CPU::op_mvi(Memory& memory) {
+    uint8_t dst = (current_opcode >> 3) & 0x07;
+    uint8_t value = fetch_byte(memory);
+    write_reg_or_memory(dst, value, memory);
 
+    // MVI r takes 7 cycles, MVI M takes 10 cycles
+    return (dst == 6) ? 10 : 7;
+}
 
 // LDA instruction handler
+uint32_t CPU::op_lda(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    a = memory.read(addr);
+    return 13;
+}
 
 // STA instruction handler
+uint32_t CPU::op_sta(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    memory.write(addr, a);
+    return 13;
+}
 
 // LHLD instruction handler
 
