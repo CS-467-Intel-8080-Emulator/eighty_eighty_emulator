@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# Build SDL statically so there's no SDL3.dll / .so to hunt down at runtime
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
@@ -18,5 +17,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-add_executable(8080 main.cpp)
-target_link_libraries(8080 PRIVATE SDL3::SDL3)
+add_executable(frontend
+    src/frontend/main.cpp
+    src/platform/fake_invaders/machine.cpp
+)
+
+target_include_directories(frontend
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}
+)
+
+target_link_libraries(frontend PRIVATE SDL3::SDL3)
