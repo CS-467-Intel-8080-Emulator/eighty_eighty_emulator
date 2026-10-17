@@ -30,6 +30,10 @@ class CPU {
         // Condition helper (Jcc, Ccc, Rcc)
         bool check_condition(uint8_t cc) const;
 
+        // Stack helpers (CALL, Ccc, RST, RET, Rcc, interrupts)
+        void push_word(Memory& memory, uint16_t value);
+        uint16_t pop_word(Memory& memory);
+
         // Register/memory helpers
         uint8_t read_reg_or_memory(uint8_t index, Memory& memory);
         void write_reg_or_memory(uint8_t index, uint8_t value, Memory& memory);
@@ -112,7 +116,11 @@ class CPU {
         uint32_t op_jmp(Memory& memory);
         uint32_t op_jcc(Memory& memory);
         uint32_t op_call(Memory& memory);
+        uint32_t op_ccc(Memory& memory);
         uint32_t op_ret(Memory& memory);
+        uint32_t op_rcc(Memory& memory);
+        uint32_t op_rst(Memory& memory);
+        uint32_t op_pchl(Memory& memory);
 
         // Unit test access
         friend struct CPUTestAccess;

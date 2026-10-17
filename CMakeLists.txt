@@ -69,6 +69,7 @@ FetchContent_MakeAvailable(Catch2)
 # Tests use tests/test_memory.cpp (64K RAM) in place of src/core/memory.cpp
 add_executable(cpu_tests
     tests/test_jumps.cpp
+    tests/test_calls.cpp
     tests/test_memory.cpp
     src/core/cpu.cpp
 )

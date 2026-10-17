@@ -76,6 +76,14 @@ CPU::CPU()
         table[0xC3] = &CPU::op_jmp;
         table[0xCB] = &CPU::op_jmp;     // undocumented alias for JMP
 
+        // --- Calls and returns ---
+        for (uint16_t op = 0xC4; op <= 0xFC; op += 0x08) table[op] = &CPU::op_ccc;
+        for (uint16_t op = 0xC0; op <= 0xF8; op += 0x08) table[op] = &CPU::op_rcc;
+        for (uint16_t op = 0xC7; op <= 0xFF; op += 0x08) table[op] = &CPU::op_rst;
+        table[0xCD] = &CPU::op_call;
+        table[0xC9] = &CPU::op_ret;
+        table[0xE9] = &CPU::op_pchl;
+
         // --- Immediates (must follow the branching loop) ---
         table[0xC6] = &CPU::op_adi;
         table[0xCE] = &CPU::op_aci;
@@ -107,6 +115,21 @@ uint8_t CPU::fetch_byte(Memory& memory) {
 uint16_t CPU::fetch_word(Memory& memory) {
     uint8_t lo = memory.read(pc++);
     uint8_t hi = memory.read(pc++);
+    return (hi << 8) | lo;
+}
+
+// Push a word (SP wraps at 0x0000)
+void CPU::push_word(Memory& memory, uint16_t value) {
+    uint8_t hi = value >> 8;
+    uint8_t lo = value & 0xFF;
+    memory.write(--sp, hi);
+    memory.write(--sp, lo);
+}
+
+// Pop a word (SP wraps at 0xFFFF)
+uint16_t CPU::pop_word(Memory& memory) {
+    uint8_t lo = memory.read(sp++);
+    uint8_t hi = memory.read(sp++);
     return (hi << 8) | lo;
 }
 
@@ -202,6 +225,53 @@ uint32_t CPU::op_jcc(Memory& memory) {
         pc = addr;
     }
     return 10;
+}
+
+// CALL addr instruction handler (0xCD)
+uint32_t CPU::op_call(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    push_word(memory, pc);
+    pc = addr;
+    return 17;
+}
+
+// Ccc addr instruction handler (0xC4 + 8*cc: CNZ CZ CNC CC CPO CPE CP CM)
+uint32_t CPU::op_ccc(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    if (check_condition(current_opcode)) {
+        push_word(memory, pc);
+        pc = addr;
+        return 17;
+    }
+    return 11;
+}
+
+// RET instruction handler (0xC9)
+uint32_t CPU::op_ret(Memory& memory) {
+    pc = pop_word(memory);
+    return 10;
+}
+
+// Rcc instruction handler (0xC0 + 8*cc: RNZ RZ RNC RC RPO RPE RP RM)
+uint32_t CPU::op_rcc(Memory& memory) {
+    if (check_condition(current_opcode)) {
+        pc = pop_word(memory);
+        return 11;
+    }
+    return 5;
+}
+
+// RST n instruction handler (0xC7 + 8*n): call to n*8
+uint32_t CPU::op_rst(Memory& memory) {
+    push_word(memory, pc);
+    pc = current_opcode & 0x38;
+    return 11;
+}
+
+// PCHL instruction handler (0xE9): PC = HL
+uint32_t CPU::op_pchl(Memory&) {
+    pc = (h << 8) | l;
+    return 5;
 }
 
 // TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)
