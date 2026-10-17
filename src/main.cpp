@@ -11,16 +11,16 @@ int main() {
     try {
         Machine machine;
         Frontend frontend(
-            machine.get_title(),
-            machine.get_display_width(),
-            machine.get_display_height(),
-            machine.get_display_rotation(),
-            3
+            machine.title(),
+            machine.display_width(),
+            machine.display_height(),
+            machine.display_rotation(),
+            2
         );
 
         while (frontend.handle_events()) {
             machine.run_frame();
-            frontend.present(machine.get_pixels());
+            frontend.present(machine.pixels());
         }
     } catch (const std::exception& e) {
         SDL_Log("%s", e.what());

@@ -10,23 +10,23 @@ class Machine
 public:
     Machine();
 
-    char* get_title() const;
-    int get_display_width() const;
-    int get_display_height() const;
-    double get_fps() const;
-    double get_display_rotation() const;
-    const uint32_t* get_pixels() const;
+    char* title() const;
+    int display_width() const;
+    int display_height() const;
+    double display_rotation() const;
+    // double fps() const;
+    const uint32_t* pixels() const;
 
     void run_frame();
 
 private:
-    char* title;
-    const int display_width;
-    const int display_height;
-    const double fps;
-    const double display_rotation;
-    std::vector<uint32_t> pixels;
+    char* title_;
+    const int display_width_;
+    const int display_height_;
+    const double display_rotation_;
+    // const double fps_;
+    std::vector<uint32_t> pixels_;
 
     // Temp helper to fake animation
-    uint32_t frame = 0;
+    uint32_t frame_ = 0;
 };
