@@ -13,8 +13,9 @@ public:
     char* get_title() const;
     int get_display_width() const;
     int get_display_height() const;
-    float get_framerate() const;
-    const uint32_t* get_display_buffer() const;
+    double get_fps() const;
+    double get_display_rotation() const;
+    const uint32_t* get_pixels() const;
 
     void run_frame();
 
@@ -22,11 +23,10 @@ private:
     char* title;
     const int display_width;
     const int display_height;
-    const float framerate; // Calc based on clock speed vs. stored as variable?
+    const double fps;
+    const double display_rotation;
+    std::vector<uint32_t> pixels;
 
-    std::vector<uint32_t> pixels = std::vector<uint32_t>(display_width * display_height);
-
-    // Temp helpers to fake animation
+    // Temp helper to fake animation
     uint32_t frame = 0;
-    void fill_rect(int x, int y, int w, int h, uint32_t color);
 };
