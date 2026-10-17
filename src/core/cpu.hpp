@@ -27,6 +27,9 @@ class CPU {
         uint8_t fetch_byte(Memory& memory);
         uint16_t fetch_word(Memory& memory);
 
+        // Condition helper (Jcc, Ccc, Rcc)
+        bool check_condition(uint8_t cc) const;
+
         // Register/memory helpers
         uint8_t read_reg_or_memory(uint8_t index, Memory& memory);
         void write_reg_or_memory(uint8_t index, uint8_t value, Memory& memory);
@@ -107,6 +110,7 @@ class CPU {
         // Control flow / Branching
         uint32_t op_branching(Memory& memory);
         uint32_t op_jmp(Memory& memory);
+        uint32_t op_jcc(Memory& memory);
         uint32_t op_call(Memory& memory);
         uint32_t op_ret(Memory& memory);
 

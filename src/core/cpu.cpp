@@ -69,6 +69,13 @@ CPU::CPU()
         for (uint16_t opcode = 0xC0; opcode <= 0xFF; opcode++)
             table[opcode] = &CPU::op_branching;
 
+        // --- Control flow: conditional (one opcode per condition code) ---
+        for (uint16_t op = 0xC2; op <= 0xFA; op += 0x08) table[op] = &CPU::op_jcc;
+
+        // --- Control flow: unconditional ---
+        table[0xC3] = &CPU::op_jmp;
+        table[0xCB] = &CPU::op_jmp;     // undocumented alias for JMP
+
         // --- Immediates (must follow the branching loop) ---
         table[0xC6] = &CPU::op_adi;
         table[0xCE] = &CPU::op_aci;
@@ -103,6 +110,21 @@ uint16_t CPU::fetch_word(Memory& memory) {
     return (hi << 8) | lo;
 }
 
+// Evaluate 3-bit condition code (cc) used by Jcc, Ccc, Rcc
+bool CPU::check_condition(uint8_t opcode) const {
+    uint8_t cc = (opcode >> 3) & 0x07;
+    switch(cc) {
+        case 0: return !(flags & FLAG_ZERO);    // NZ:  Not Zero
+        case 1: return (flags & FLAG_ZERO);     // Z:   Zero
+        case 2: return !(flags & FLAG_CARRY);   // NC:  Not Carry
+        case 3: return (flags & FLAG_CARRY);    // C:   Carry
+        case 4: return !(flags & FLAG_PARITY);  // PO:  Parity Odd
+        case 5: return (flags & FLAG_PARITY);   // PE:  Parity Even
+        case 6: return !(flags & FLAG_SIGN);    // P:   Plus
+        case 7: return (flags & FLAG_SIGN);     // M:   Minus
+    }
+    return false;
+}
 
 // NOP instruction handler
 uint32_t CPU::op_nop(Memory& memory) {
@@ -116,6 +138,10 @@ uint32_t CPU::op_lxi_b(Memory& memory) {
     b = value >> 8;
     return 10;
 }
+
+// TODO(data movement): placeholders so the build links. replace later
+uint32_t CPU::op_stax_b(Memory&) { return 7; }
+uint32_t CPU::op_inx_b(Memory&) { return 5; }
 
 // MOV r1, r2 instruction handler
 uint32_t CPU::op_mov(Memory& memory) {
@@ -162,6 +188,26 @@ uint32_t CPU::op_sta(Memory& memory) {
 
 // XCHG instruction handler
     
+
+// JMP addr instruction handler (0xC3)
+uint32_t CPU::op_jmp(Memory& memory) {
+    pc = fetch_word(memory);
+    return 10;
+}
+
+// Jcc addr instruction handler (0xC2 + 8*cc: JNZ JZ JNC JC JPO JPE JP JM)
+uint32_t CPU::op_jcc(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    if (check_condition(current_opcode)) {
+        pc = addr;
+    }
+    return 10;
+}
+
+// TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)
+uint32_t CPU::op_branching(Memory&) {
+    return 4;
+}
 
 /*
 Register and memory helper functions
