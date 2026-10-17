@@ -6,8 +6,7 @@ Machine::Machine() :
     display_height{ 224 },
     fps{ 60.0 }, // Calc based on clock speed vs. stored as variable?
     display_rotation{ 90.0 },
-    pixels{ std::vector<uint32_t>(display_width * display_height) }
-{
+    pixels{ std::vector<uint32_t>(display_width * display_height) } {
 }
 
 char* Machine::get_title() const {
@@ -37,12 +36,12 @@ const uint32_t* Machine::get_pixels() const {
 void Machine::run_frame() {
     ++frame;
 
-    uint32_t black = 0xFF000000;
+    uint32_t dblue = 0xFF1D2739;
     uint32_t green = 0xFF00FF00;
     uint32_t white = 0xFFFFFFFF;
 
     for (int i = 0; i < pixels.size(); ++i) {
         int row = i / display_width;
-        pixels[i] = i == frame % pixels.size() ? (row % 2 ? green : white) : black;
+        pixels[i] = i == frame % pixels.size() ? (row % 2 ? green : white) : dblue;
     }
 }

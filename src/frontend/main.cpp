@@ -24,16 +24,16 @@ int main() {
     const double rotation = machine.get_display_rotation();
     const bool sideways = (rotation == 90.0 || rotation == 270.0);
 
-    const int w_out = (sideways ? h_native : w_native) * SCALE;
-    const int h_out = (sideways ? w_native : h_native) * SCALE;
+    const int w_logical = (sideways ? h_native : w_native);
+    const int h_logical = (sideways ? w_native : h_native);
 
     SDL_FRect dst;
-    dst.w = sideways ? static_cast<float>(h_out) : static_cast<float>(w_out);
-    dst.h = sideways ? static_cast<float>(w_out) : static_cast<float>(h_out);
-    dst.x = (w_out - dst.w) / 2.0f;
-    dst.y = (h_out - dst.h) / 2.0f;
+    dst.w = static_cast<float>(w_native);
+    dst.h = static_cast<float>(h_native);
+    dst.x = (w_logical - dst.w) / 2.0f;
+    dst.y = (h_logical - dst.h) / 2.0f;
 
-    if (!init_sdl(machine.get_title(), w_native, h_native, w_out, h_out))
+    if (!init_sdl(machine.get_title(), w_native, h_native, w_logical, h_logical))
         return 1;
 
     bool running = true;
@@ -44,8 +44,9 @@ int main() {
         machine.run_frame();
         const uint32_t* pixels = machine.get_pixels();
 
-        SDL_RenderClear(renderer);
         SDL_UpdateTexture(texture, nullptr, pixels, w_native * sizeof(uint32_t));
+
+        SDL_RenderClear(renderer);
         SDL_RenderTextureRotated(renderer, texture, nullptr, &dst, rotation, nullptr, SDL_FLIP_NONE);
         SDL_RenderPresent(renderer);
     }
@@ -67,13 +68,13 @@ bool handle_events() {
     return true;
 }
 
-bool init_sdl(const char* title, int w_native, int h_native, int w_out, int h_out) {
+bool init_sdl(const char* title, int w_native, int h_native, int w_logical, int h_logical) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL was not initialized. SDL error: %s\n", SDL_GetError());
         return false;
     }
 
-    window = SDL_CreateWindow(title, w_out, h_out, 0);
+    window = SDL_CreateWindow(title, w_logical, h_logical, SDL_WINDOW_RESIZABLE);
     renderer = window ? SDL_CreateRenderer(window, nullptr) : nullptr;
     texture = renderer ? SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING, w_native, h_native)
@@ -85,8 +86,11 @@ bool init_sdl(const char* title, int w_native, int h_native, int w_out, int h_ou
         return false;
     }
 
-    SDL_SetRenderVSync(renderer, 1);  // Makes it so SDL_RenderPresent blocks
+    SDL_SetWindowMinimumSize(window, w_logical, h_logical);
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    SDL_SetRenderVSync(renderer, 1);  // Makes it so SDL_RenderPresent blocks
+    SDL_SetRenderLogicalPresentation(renderer, w_logical, h_logical, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
     return true;
 }
 
