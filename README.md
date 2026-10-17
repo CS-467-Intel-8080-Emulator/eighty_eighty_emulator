@@ -30,7 +30,7 @@ ctest --test-dir build -C Release
 Run the program.
 ```sh
 # Windows
-build/Release/8080_windows.exe
+.\build\Release\8080_windows.exe
 
 # macOS
 ./build/8080_macos
