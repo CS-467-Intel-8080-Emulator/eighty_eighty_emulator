@@ -17,14 +17,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-add_executable(frontend
-    src/frontend/main.cpp
+add_executable(main
+    src/main.cpp
+    src/frontend/frontend.cpp
     src/platform/fake_invaders/machine.cpp
 )
 
-target_include_directories(frontend
+target_include_directories(main
     PRIVATE
         ${CMAKE_SOURCE_DIR}
 )
 
-target_link_libraries(frontend PRIVATE SDL3::SDL3)
+target_link_libraries(main PRIVATE SDL3::SDL3)
