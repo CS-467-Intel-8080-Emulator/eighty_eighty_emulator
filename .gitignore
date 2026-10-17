@@ -1,1 +1,4 @@
 build/
+CMakePresets.json
+assets/roms/invaders/
+SDL/
