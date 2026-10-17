@@ -22,6 +22,9 @@ struct CPUTestAccess {
     static uint16_t& pc(CPU& cpu) { return cpu.pc; }
     static uint16_t& sp(CPU& cpu) { return cpu.sp; }
     static uint8_t& flags(CPU& cpu) { return cpu.flags; }
+    static bool& interrupts_enabled(CPU& cpu) { return cpu.interrupts_enabled; }
+    static bool& ei_pending(CPU& cpu) { return cpu.ei_pending; }
+    static bool& halted(CPU& cpu) { return cpu.halted; }
 };
 using T = CPUTestAccess;
 

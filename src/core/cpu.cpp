@@ -6,8 +6,9 @@ Constructor for the CPU class
  */
 CPU::CPU()
     : a(0), b(0), c(0), d(0), e(0), h(0), l(0),
-      pc(0), sp(0), flags(0) 
-    
+      pc(0), sp(0), flags(0),
+      interrupts_enabled(false), ei_pending(false), halted(false)
+
     {
         // --- Explicit opcodes ---
         table[0x00] = &CPU::op_nop;
@@ -24,6 +25,7 @@ CPU::CPU()
         // --- MOV group (0x40 - 0x7F) ---
         for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++) 
             table[opcode] = &CPU::op_mov;
+        table[0x76] = &CPU::op_hlt;     // must follow MOV loop
         
         // --- Arithmetic group (0x80 - 0x9F) ---
         for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++) 
@@ -84,6 +86,10 @@ CPU::CPU()
         table[0xC9] = &CPU::op_ret;
         table[0xE9] = &CPU::op_pchl;
 
+        // --- Machine control (must follow the branching loop) ---
+        table[0xF3] = &CPU::op_di;
+        table[0xFB] = &CPU::op_ei;
+
         // --- Immediates (must follow the branching loop) ---
         table[0xC6] = &CPU::op_adi;
         table[0xCE] = &CPU::op_aci;
@@ -96,6 +102,15 @@ CPU::CPU()
     }
 
  uint32_t CPU::step(Memory& memory) {
+    if (ei_pending) {
+        interrupts_enabled = true;
+        ei_pending = false;
+    }
+
+    if (halted) {
+        return 4;
+    }
+
     uint8_t opcode = memory.read(pc);
     pc++;
     current_opcode = opcode;
@@ -272,6 +287,38 @@ uint32_t CPU::op_rst(Memory& memory) {
 uint32_t CPU::op_pchl(Memory&) {
     pc = (h << 8) | l;
     return 5;
+}
+
+// HLT instruction handler (0x76)
+uint32_t CPU::op_hlt(Memory&) {
+    halted = true;
+    return 7;
+}
+
+// EI instruction handler (0xFB)
+uint32_t CPU::op_ei(Memory&) {
+    ei_pending = true;
+    return 4;
+}
+
+// DI instruction handler (0xF3)
+uint32_t CPU::op_di(Memory&) {
+    interrupts_enabled = false;
+    ei_pending = false;
+    return 4;
+}
+
+// Hardware interrupt: ignored unless enabled, then runs RST rst_num
+uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
+    if (!interrupts_enabled) {
+        return 0;
+    }
+    interrupts_enabled = false;
+    halted = false;
+
+    // The interrupting device supplies an RST n instruction (0xC7 + 8*n)
+    current_opcode = 0xC7 | (rst_num << 3);
+    return op_rst(memory);
 }
 
 // TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)

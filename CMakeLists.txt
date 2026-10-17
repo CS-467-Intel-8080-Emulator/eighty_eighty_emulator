@@ -70,6 +70,7 @@ FetchContent_MakeAvailable(Catch2)
 add_executable(cpu_tests
     tests/test_jumps.cpp
     tests/test_calls.cpp
+    tests/test_control.cpp
     tests/test_memory.cpp
     src/core/cpu.cpp
 )

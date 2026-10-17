@@ -10,6 +10,7 @@ class CPU {
     public:
         CPU();
         uint32_t step(Memory& memory);
+        uint32_t interrupt(Memory& memory, uint8_t rst_num);
 
     private:
         using OpFunc = uint32_t (CPU::*)(Memory& memory);
@@ -22,6 +23,11 @@ class CPU {
         uint16_t pc, sp;
         uint8_t flags;
         uint8_t current_opcode;
+
+        // Interrupt/halt state
+        bool interrupts_enabled;
+        bool ei_pending;
+        bool halted;
 
         // Fetch helpers
         uint8_t fetch_byte(Memory& memory);
@@ -63,6 +69,11 @@ class CPU {
 
         // Opcode handlers
         uint32_t op_nop(Memory& memory);
+
+        // Machine control
+        uint32_t op_hlt(Memory& memory);
+        uint32_t op_ei(Memory& memory);
+        uint32_t op_di(Memory& memory);
 
         // Data movement
         uint32_t op_mov(Memory& memory);
