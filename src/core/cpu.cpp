@@ -139,6 +139,10 @@ uint32_t CPU::op_lxi_b(Memory& memory) {
     return 10;
 }
 
+// TODO(data movement): placeholders so the build links. replace later
+uint32_t CPU::op_stax_b(Memory&) { return 7; }
+uint32_t CPU::op_inx_b(Memory&) { return 5; }
+
 // MOV r1, r2 instruction handler
 uint32_t CPU::op_mov(Memory& memory) {
     uint8_t src = current_opcode & 0x07; 
@@ -198,6 +202,11 @@ uint32_t CPU::op_jcc(Memory& memory) {
         pc = addr;
     }
     return 10;
+}
+
+// TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)
+uint32_t CPU::op_branching(Memory&) {
+    return 4;
 }
 
 /*
