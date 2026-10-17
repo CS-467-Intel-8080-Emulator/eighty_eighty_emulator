@@ -79,7 +79,7 @@ add_executable(test_alu
     tests/test_alu.cpp
     tests/test_memory.cpp
 )
-target_link_libraries(test_alu PRIVATE emu)
+target_link_libraries(test_alu PRIVATE emu Catch2::Catch2WithMain)
 
 enable_testing()
 add_test(NAME test_alu COMMAND test_alu)
