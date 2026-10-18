@@ -22,6 +22,7 @@ class CPU {
         uint16_t pc, sp;
         uint8_t flags;
         uint8_t current_opcode;
+        bool halted;
 
         // Fetch helpers
         uint8_t fetch_byte(Memory& memory);
@@ -49,9 +50,8 @@ class CPU {
         // Data movement
         uint32_t op_mov(Memory& memory);
         uint32_t op_mvi(Memory& memory);
-        uint32_t op_lxi_b(Memory& memory);
-        uint32_t op_stax_b(Memory& memory);
-        uint32_t op_inx_b(Memory& memory);
+        uint32_t op_lxi(Memory& memory);
+        uint32_t op_inx(Memory& memory);
         uint32_t op_lda(Memory& memory);
         uint32_t op_sta(Memory& memory);
         uint32_t op_ldax(Memory& memory);
@@ -59,6 +59,8 @@ class CPU {
         uint32_t op_lhld(Memory& memory);
         uint32_t op_shld(Memory& memory);
         uint32_t op_xchg(Memory& memory);
+        uint32_t op_dcx(Memory& memory);
+        uint32_t op_hlt(Memory& memory);
 
         // Arithmetic
         uint32_t op_add(Memory& memory);
@@ -71,11 +73,13 @@ class CPU {
         uint32_t op_cmp(Memory& memory);
 
         // Control flow / Branching
-        uint32_t op_branching(Memory& memory);
         uint32_t op_jmp(Memory& memory);
         uint32_t op_call(Memory& memory);
         uint32_t op_ret(Memory& memory);
-
+        uint32_t op_pchl(Memory& memory);
+        uint32_t op_jcond(Memory& memory);
+        uint32_t op_ccond(Memory& memory);
+        uint32_t op_rcond(Memory& memory);
     };
 
 #endif
