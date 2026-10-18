@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false # let all three OSes finish even if one fails
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+          - os: windows-latest
+            name: windows
+          - os: macos-latest
+            name: macos
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install SDL3 dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: sh scripts/install-linux-deps.sh
+
+      # Build an optimized (Release) version on every OS.
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      # Copy game program (8080_linux, 8080_windows.exe, or 8080_macos) into distribution
+      - name: Package the game
+        run: cmake --install build --config Release --prefix dist
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: 8080_${{ matrix.name }}
+          path: dist/
