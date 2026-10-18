@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(eighty_eighty_emulator C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -27,14 +27,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-# The main program (currently the SDL "Hello, world!" test - to be replaced later by src/frontend)
-# The file is named for the OS: 8080_windows.exe, 8080_macos, or 8080_linux.
+# The main program (currently the SDL "Fake Invaders" test)
 if(WIN32)
-    set(OS_NAME windows)
+    set(OS_NAME windows)  # 8080_windows.exe
 elseif(APPLE)
-    set(OS_NAME macos)
+    set(OS_NAME macos)    # 8080_macos
 else()
-    set(OS_NAME linux)
+    set(OS_NAME linux)    # 8080_linux
 endif()
 add_executable(8080
     src/main.cpp
