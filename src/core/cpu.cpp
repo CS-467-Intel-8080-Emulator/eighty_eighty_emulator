@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 #include "memory.hpp"
+#include "io_bus.hpp"
 
 /*
 Constructor for the CPU class
@@ -7,7 +8,8 @@ Constructor for the CPU class
 CPU::CPU()
     : a(0), b(0), c(0), d(0), e(0), h(0), l(0),
       pc(0), sp(0), flags(0),
-      interrupts_enabled(false), ei_pending(false), halted(false)
+      interrupts_enabled(false), ei_pending(false), halted(false),
+      io(nullptr)
 
     {
         // --- Explicit opcodes ---
@@ -89,6 +91,10 @@ CPU::CPU()
         // --- Machine control (must follow the branching loop) ---
         table[0xF3] = &CPU::op_di;
         table[0xFB] = &CPU::op_ei;
+
+        // --- I/O (must follow the branching loop) ---
+        table[0xDB] = &CPU::op_in;
+        table[0xD3] = &CPU::op_out;
 
         // --- Immediates (must follow the branching loop) ---
         table[0xC6] = &CPU::op_adi;
@@ -306,6 +312,27 @@ uint32_t CPU::op_di(Memory&) {
     interrupts_enabled = false;
     ei_pending = false;
     return 4;
+}
+
+// Attach the machine's port handlers
+void CPU::set_io(IOBus* bus) {
+    io = bus;
+}
+
+// IN port instruction handler (0xDB)
+uint32_t CPU::op_in(Memory& memory) {
+    uint8_t port = fetch_byte(memory);
+    a = io ? io->in(port) : 0xFF;
+    return 10;
+}
+
+// OUT port instruction handler (0xD3)
+uint32_t CPU::op_out(Memory& memory) {
+    uint8_t port = fetch_byte(memory);
+    if (io) {
+        io->out(port, a);
+    }
+    return 10;
 }
 
 // Hardware interrupt: ignored unless enabled, then runs RST rst_num
