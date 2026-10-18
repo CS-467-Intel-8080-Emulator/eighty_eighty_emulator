@@ -7,7 +7,7 @@
 #include <exception>
 #include <iostream>
 
-int main() {
+int main(int, char* argv[]) {
     try {
         Machine machine;
         Frontend frontend(
