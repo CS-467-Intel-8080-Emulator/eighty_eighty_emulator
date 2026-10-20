@@ -89,9 +89,9 @@ class CPU {
         // Data movement
         uint32_t op_mov(Memory& memory);
         uint32_t op_mvi(Memory& memory);
-        uint32_t op_lxi_b(Memory& memory);
-        uint32_t op_stax_b(Memory& memory);
-        uint32_t op_inx_b(Memory& memory);
+        uint32_t op_lxi(Memory& memory);
+        uint32_t op_inx(Memory& memory);
+        uint32_t op_dcx(Memory& memory);
         uint32_t op_lda(Memory& memory);
         uint32_t op_sta(Memory& memory);
         uint32_t op_ldax(Memory& memory);

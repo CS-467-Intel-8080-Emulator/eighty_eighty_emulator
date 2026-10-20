@@ -14,9 +14,6 @@ CPU::CPU()
     {
         // --- Explicit opcodes ---
         table[0x00] = &CPU::op_nop;
-        table[0x01] = &CPU::op_lxi_b;
-        table[0x02] = &CPU::op_stax_b;
-        table[0x03] = &CPU::op_inx_b;
         table[0x3A] = &CPU::op_lda;
         table[0x32] = &CPU::op_sta;
 
@@ -28,6 +25,26 @@ CPU::CPU()
         for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++) 
             table[opcode] = &CPU::op_mov;
         table[0x76] = &CPU::op_hlt;     // must follow MOV loop
+
+        // --- LXI group (0x01, 0x11, 0x21, 0x31) ---
+        for (uint8_t opcode = 0; opcode <= 3; opcode++)
+            table[(opcode << 4) | 0x1] = &CPU::op_lxi;
+
+        // --- INX group (0x03, 0x13, 0x23, 0x33) ---
+        for (uint8_t opcode = 0; opcode <= 3; opcode++)
+            table[(opcode << 4) | 0x3] = &CPU::op_inx;
+        
+        // --- DCX group (0x0B, 0x1B, 0x2B, 0x3B) ---
+         for (uint8_t opcode = 0; opcode <= 3; opcode++)
+            table[(opcode << 4) | 0xB] = &CPU::op_dcx;
+
+        // --- LDAX group (0x0A, 0x1A) ---
+        for (uint8_t opcode = 0; opcode <= 1; opcode++)
+            table[(opcode << 4) | 0xA] = &CPU::op_ldax;
+
+        // --- STAX group (0x02, 0x12) ---
+        for (uint8_t opcode = 0; opcode <= 1; opcode++)
+            table[(opcode << 4) | 0x2] = &CPU::op_stax;
         
         // --- Arithmetic group (0x80 - 0x9F) ---
         for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++) 
@@ -175,17 +192,29 @@ uint32_t CPU::op_nop(Memory& memory) {
     return 4;
 }
 
-// LXI B instruction handler
-uint32_t CPU::op_lxi_b(Memory& memory) {
+// LXI instruction handler
+uint32_t CPU::op_lxi(Memory& memory) {
     uint16_t value = fetch_word(memory);
-    c = value & 0xFF;
-    b = value >> 8;
+    // Determine which register pair to load based on the opcode
+    switch (current_opcode) {
+        case 0x01: // LXI B
+            c = value & 0xFF;
+            b = value >> 8;
+            break;
+        case 0x11: // LXI D
+            e = value & 0xFF;
+            d = value >> 8;
+            break;
+        case 0x21: // LXI H
+            l = value & 0xFF;
+            h = value >> 8;
+            break;
+        case 0x31: // LXI SP
+            sp = value;
+            break;
+    }
     return 10;
 }
-
-// TODO(data movement): placeholders so the build links. replace later
-uint32_t CPU::op_stax_b(Memory&) { return 7; }
-uint32_t CPU::op_inx_b(Memory&) { return 5; }
 
 // MOV r1, r2 instruction handler
 uint32_t CPU::op_mov(Memory& memory) {
@@ -223,15 +252,125 @@ uint32_t CPU::op_sta(Memory& memory) {
 }
 
 // LHLD instruction handler
+uint32_t CPU::op_lhld(Memory& memory){
+    uint16_t addr = fetch_word(memory);
+    // Load L then H from memory
+    l = memory.read(addr);
+    h = memory.read(addr + 1);
+    return 16;
+}
 
 // SHLD instruction handler
+uint32_t CPU::op_shld(Memory& memory){
+    uint16_t addr = fetch_word(memory);
+    // Store L then H to memory
+    memory.write(addr, l);
+    memory.write(addr + 1, h);
+    return 16;
+}
 
 // LDAX instruction handler
+uint32_t CPU::op_ldax(Memory& memory) {
+    uint16_t adder;
+    if (current_opcode == 0x0A) {
+        adder = (b <<8) | c;
+    } else {
+        adder = (d << 8) | e;
+    }
+    a = memory.read(adder);
+    return 7;
+}
 
-// STAX D instruction handler
+// STAX B & D instruction handler
+uint32_t CPU::op_stax(Memory& memory) {
+    uint16_t adder;
+    // 0x02 is STAX B, 0x12 is STAX D
+    if (current_opcode == 0x02) {
+        adder = (b << 8) | c;
+    } else {
+        adder = (d << 8) | e;
+    }
+    memory.write(adder, a);
+    return 7;
+}
 
 // XCHG instruction handler
-    
+uint32_t CPU::op_xchg(Memory& memory) {
+    std::swap(d, h);
+    std::swap(e, l);
+    return 4;
+}
+
+// INX instruction handler
+uint32_t CPU::op_inx(Memory& memory) {
+    // Determine which register pair to increment based on the opcode
+    switch (current_opcode) {
+        case 0x03: // INX B
+        {
+            uint16_t bc = (b << 8) | c;
+            bc++;
+            b = (bc >> 8) & 0xFF;
+            c = bc & 0xFF;
+        }
+        break;
+        case 0x13: // INX D
+        {
+            uint16_t de = (d << 8) | e;
+            de++;
+            d = (de >> 8) & 0xFF;
+            e = de & 0xFF;
+        }
+        break;
+        case 0x23: // INX H
+        {
+            uint16_t hl = (h << 8) | l;
+            hl++;
+            h = (hl >> 8) & 0xFF;
+            l = hl & 0xFF;
+        }
+        break;
+        case 0x33: // INX SP
+        {
+            sp++;
+        }
+        break;
+    }
+    return 5;
+}
+
+// DCX instruction handler
+uint32_t CPU::op_dcx(Memory& memory) {
+    switch (current_opcode) {
+        case 0x0B: // DCX B
+            {
+                uint16_t bc = (b << 8) | c;
+                bc--;
+                b = (bc >> 8) & 0xFF;
+                c = bc & 0xFF;
+            }
+            break;
+        case 0x1B: // DCX D
+            {
+                uint16_t de = (d << 8) | e;
+                de--;
+                d = (de >> 8) & 0xFF;
+                e = de & 0xFF;
+            }
+            break;
+        case 0x2B: // DCX H
+            {
+                uint16_t hl = (h << 8) | l;
+                hl--;
+                h = (hl >> 8) & 0xFF;
+                l = hl & 0xFF;
+            }
+            break;
+        case 0x3B: // DCX SP
+            sp--;
+            break;
+    }
+    return 5;
+}
 
 // JMP addr instruction handler (0xC3)
 uint32_t CPU::op_jmp(Memory& memory) {
