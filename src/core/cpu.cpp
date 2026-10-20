@@ -1,13 +1,16 @@
 #include "cpu.hpp"
 #include "memory.hpp"
+#include "io_bus.hpp"
 
 /*
 Constructor for the CPU class
  */
 CPU::CPU()
     : a(0), b(0), c(0), d(0), e(0), h(0), l(0),
-      pc(0), sp(0), flags(0) 
-    
+      pc(0), sp(0), flags(0),
+      interrupts_enabled(false), ei_pending(false), halted(false),
+      io(nullptr)
+
     {
         // --- Explicit opcodes ---
         table[0x00] = &CPU::op_nop;
@@ -24,6 +27,7 @@ CPU::CPU()
         // --- MOV group (0x40 - 0x7F) ---
         for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++) 
             table[opcode] = &CPU::op_mov;
+        table[0x76] = &CPU::op_hlt;     // must follow MOV loop
         
         // --- Arithmetic group (0x80 - 0x9F) ---
         for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++) 
@@ -76,6 +80,22 @@ CPU::CPU()
         table[0xC3] = &CPU::op_jmp;
         table[0xCB] = &CPU::op_jmp;     // undocumented alias for JMP
 
+        // --- Calls and returns ---
+        for (uint16_t op = 0xC4; op <= 0xFC; op += 0x08) table[op] = &CPU::op_ccc;
+        for (uint16_t op = 0xC0; op <= 0xF8; op += 0x08) table[op] = &CPU::op_rcc;
+        for (uint16_t op = 0xC7; op <= 0xFF; op += 0x08) table[op] = &CPU::op_rst;
+        table[0xCD] = &CPU::op_call;
+        table[0xC9] = &CPU::op_ret;
+        table[0xE9] = &CPU::op_pchl;
+
+        // --- Machine control (must follow the branching loop) ---
+        table[0xF3] = &CPU::op_di;
+        table[0xFB] = &CPU::op_ei;
+
+        // --- I/O (must follow the branching loop) ---
+        table[0xDB] = &CPU::op_in;
+        table[0xD3] = &CPU::op_out;
+
         // --- Immediates (must follow the branching loop) ---
         table[0xC6] = &CPU::op_adi;
         table[0xCE] = &CPU::op_aci;
@@ -88,6 +108,15 @@ CPU::CPU()
     }
 
  uint32_t CPU::step(Memory& memory) {
+    if (ei_pending) {
+        interrupts_enabled = true;
+        ei_pending = false;
+    }
+
+    if (halted) {
+        return 4;
+    }
+
     uint8_t opcode = memory.read(pc);
     pc++;
     current_opcode = opcode;
@@ -107,6 +136,21 @@ uint8_t CPU::fetch_byte(Memory& memory) {
 uint16_t CPU::fetch_word(Memory& memory) {
     uint8_t lo = memory.read(pc++);
     uint8_t hi = memory.read(pc++);
+    return (hi << 8) | lo;
+}
+
+// Push a word (SP wraps at 0x0000)
+void CPU::push_word(Memory& memory, uint16_t value) {
+    uint8_t hi = value >> 8;
+    uint8_t lo = value & 0xFF;
+    memory.write(--sp, hi);
+    memory.write(--sp, lo);
+}
+
+// Pop a word (SP wraps at 0xFFFF)
+uint16_t CPU::pop_word(Memory& memory) {
+    uint8_t lo = memory.read(sp++);
+    uint8_t hi = memory.read(sp++);
     return (hi << 8) | lo;
 }
 
@@ -202,6 +246,106 @@ uint32_t CPU::op_jcc(Memory& memory) {
         pc = addr;
     }
     return 10;
+}
+
+// CALL addr instruction handler (0xCD)
+uint32_t CPU::op_call(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    push_word(memory, pc);
+    pc = addr;
+    return 17;
+}
+
+// Ccc addr instruction handler (0xC4 + 8*cc: CNZ CZ CNC CC CPO CPE CP CM)
+uint32_t CPU::op_ccc(Memory& memory) {
+    uint16_t addr = fetch_word(memory);
+    if (check_condition(current_opcode)) {
+        push_word(memory, pc);
+        pc = addr;
+        return 17;
+    }
+    return 11;
+}
+
+// RET instruction handler (0xC9)
+uint32_t CPU::op_ret(Memory& memory) {
+    pc = pop_word(memory);
+    return 10;
+}
+
+// Rcc instruction handler (0xC0 + 8*cc: RNZ RZ RNC RC RPO RPE RP RM)
+uint32_t CPU::op_rcc(Memory& memory) {
+    if (check_condition(current_opcode)) {
+        pc = pop_word(memory);
+        return 11;
+    }
+    return 5;
+}
+
+// RST n instruction handler (0xC7 + 8*n): call to n*8
+uint32_t CPU::op_rst(Memory& memory) {
+    push_word(memory, pc);
+    pc = current_opcode & 0x38;
+    return 11;
+}
+
+// PCHL instruction handler (0xE9): PC = HL
+uint32_t CPU::op_pchl(Memory&) {
+    pc = (h << 8) | l;
+    return 5;
+}
+
+// HLT instruction handler (0x76)
+uint32_t CPU::op_hlt(Memory&) {
+    halted = true;
+    return 7;
+}
+
+// EI instruction handler (0xFB)
+uint32_t CPU::op_ei(Memory&) {
+    ei_pending = true;
+    return 4;
+}
+
+// DI instruction handler (0xF3)
+uint32_t CPU::op_di(Memory&) {
+    interrupts_enabled = false;
+    ei_pending = false;
+    return 4;
+}
+
+// Attach the machine's port handlers
+void CPU::set_io(IOBus* bus) {
+    io = bus;
+}
+
+// IN port instruction handler (0xDB)
+uint32_t CPU::op_in(Memory& memory) {
+    uint8_t port = fetch_byte(memory);
+    a = io ? io->in(port) : 0xFF;
+    return 10;
+}
+
+// OUT port instruction handler (0xD3)
+uint32_t CPU::op_out(Memory& memory) {
+    uint8_t port = fetch_byte(memory);
+    if (io) {
+        io->out(port, a);
+    }
+    return 10;
+}
+
+// Hardware interrupt: ignored unless enabled, then runs RST rst_num
+uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
+    if (!interrupts_enabled) {
+        return 0;
+    }
+    interrupts_enabled = false;
+    halted = false;
+
+    // The interrupting device supplies an RST n instruction (0xC7 + 8*n)
+    current_opcode = 0xC7 | (rst_num << 3);
+    return op_rst(memory);
 }
 
 // TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)

@@ -5,11 +5,16 @@
 #include <cstdint>
 
 class Memory;
+class IOBus;
 
 class CPU {
     public:
         CPU();
         uint32_t step(Memory& memory);
+        uint32_t interrupt(Memory& memory, uint8_t rst_num);
+
+        // Attach the machine's port handlers for IN/OUT
+        void set_io(IOBus* bus);
 
     private:
         using OpFunc = uint32_t (CPU::*)(Memory& memory);
@@ -23,12 +28,24 @@ class CPU {
         uint8_t flags;
         uint8_t current_opcode;
 
+        // Interrupt/halt state
+        bool interrupts_enabled;
+        bool ei_pending;
+        bool halted;
+
+        // Port I/O (IN/OUT)
+        IOBus* io;
+
         // Fetch helpers
         uint8_t fetch_byte(Memory& memory);
         uint16_t fetch_word(Memory& memory);
 
         // Condition helper (Jcc, Ccc, Rcc)
         bool check_condition(uint8_t cc) const;
+
+        // Stack helpers (CALL, Ccc, RST, RET, Rcc, interrupts)
+        void push_word(Memory& memory, uint16_t value);
+        uint16_t pop_word(Memory& memory);
 
         // Register/memory helpers
         uint8_t read_reg_or_memory(uint8_t index, Memory& memory);
@@ -59,6 +76,15 @@ class CPU {
 
         // Opcode handlers
         uint32_t op_nop(Memory& memory);
+
+        // Machine control
+        uint32_t op_hlt(Memory& memory);
+        uint32_t op_ei(Memory& memory);
+        uint32_t op_di(Memory& memory);
+
+        // I/O
+        uint32_t op_in(Memory& memory);
+        uint32_t op_out(Memory& memory);
 
         // Data movement
         uint32_t op_mov(Memory& memory);
@@ -112,7 +138,11 @@ class CPU {
         uint32_t op_jmp(Memory& memory);
         uint32_t op_jcc(Memory& memory);
         uint32_t op_call(Memory& memory);
+        uint32_t op_ccc(Memory& memory);
         uint32_t op_ret(Memory& memory);
+        uint32_t op_rcc(Memory& memory);
+        uint32_t op_rst(Memory& memory);
+        uint32_t op_pchl(Memory& memory);
 
         // Unit test access
         friend struct CPUTestAccess;
