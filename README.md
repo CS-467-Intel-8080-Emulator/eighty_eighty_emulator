@@ -70,6 +70,32 @@ To watch a CPU test ROM's output as it runs, run the CP/M test machine directly:
 ./build/8080_linux
 ```
 
+# Download and Run Generated Builds
+Select a recent successful build from the [GitHub Actions](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions) page, and under **Artifacts** at the bottom, download the zip file for your platform: 
+   * `8080_linux.zip`
+   * `8080_macos.zip`
+   * `8080_windows.zip`
+
+Then unzip and run the program.
+   
+**Linux**:
+```sh
+unzip 8080_linux.zip
+./8080_linux
+```
+
+**macOS**:
+```sh
+unzip 8080_macos.zip
+xattr -d com.apple.quarantine 8080_macos
+./8080_macos
+```
+The `xattr -d ... line` clears the 'downloaded from the internet' flag that the browser adds.
+
+**Windows**:
+
+Extract the executable from the zip file and double-click `8080_windows.exe`.
+
 # CPU Test ROMs
 The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
 
