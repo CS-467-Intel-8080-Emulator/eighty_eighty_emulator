@@ -28,9 +28,34 @@ cmake --build build --config Release --parallel
 ```
 
 # Test
-`--C Release` run optimized tests on Windows (ignored on Linux/macOS).
+`-C Release` runs optimized tests on Windows (ignored on Linux/macOS).
+
+Run only the Catch2 unit tests. `-LE rom` skips the [CPU Test ROMs](#cpu-test-roms) until we're ready to turn them on. CI skips them for now too.
+```sh
+ctest --test-dir build -C Release --output-on-failure -LE rom
+```
+
+Run individual CPU test ROMs.
+```sh
+ctest --test-dir build -C Release --output-on-failure -R 8080PRE # instant
+ctest --test-dir build -C Release --output-on-failure -R TST8080 # instant
+ctest --test-dir build -C Release --output-on-failure -R CPUTEST # takes seconds
+ctest --test-dir build -C Release --output-on-failure -R 8080EXM # takes minutes
+```
+
+
+Run all tests: the Catch2 unit tests and the CPU test ROMs.
 ```sh
 ctest --test-dir build -C Release --output-on-failure
+```
+
+To watch a CPU test ROM's output as it runs, run the CP/M test machine directly:
+```sh
+# Windows
+.\build\Release\cpm_test.exe build\test_roms\TST8080.COM
+
+# Linux/macOS
+./build/cpm_test build/test_roms/TST8080.COM
 ```
 
 # Run
