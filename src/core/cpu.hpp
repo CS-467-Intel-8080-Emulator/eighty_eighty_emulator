@@ -16,6 +16,16 @@ class CPU {
         // Attach the machine's port handlers for IN/OUT
         void set_io(IOBus* bus);
 
+        // Register access for machines that need it (e.g. the CP/M test machine)
+        uint16_t get_pc() const { return pc; }
+        uint16_t get_sp() const { return sp; }
+        uint8_t get_c() const { return c; }
+        uint8_t get_d() const { return d; }
+        uint8_t get_e() const { return e; }
+        bool is_halted() const { return halted; }
+        void set_pc(uint16_t value) { pc = value; }
+        void set_sp(uint16_t value) { sp = value; }
+
     private:
         using OpFunc = uint32_t (CPU::*)(Memory& memory);
         

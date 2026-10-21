@@ -45,36 +45,12 @@ ctest --test-dir build -C Release --output-on-failure
 ./build/8080_linux
 ```
 
-# Download and Run Generated Builds
-Select a recent successful build from the [GitHub Actions](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions) page, and under **Artifacts** at the bottom, download the zip file for your platform: 
-   * `8080_linux.zip`
-   * `8080_macos.zip`
-   * `8080_windows.zip`
+# CPU Test ROMs
+The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
 
-Then unzip and run the program.
-   
-**Linux**:
-```sh
-unzip 8080_linux.zip
-./8080_linux
-```
-
-**macOS**:
-```sh
-unzip 8080_macos.zip
-xattr -d com.apple.quarantine 8080_macos
-./8080_macos
-```
-The `xattr -d ... line` clears the 'downloaded from the internet' flag that the browser adds.
-
-**Windows**:
-
-Extract the executable from the zip file and double-click `8080_windows.exe`.
-
-**Troubleshooting**:
-* Windows: If a "Windows protected your PC" dialog opens when you run the executable, click **More info** and then **Run anyway**.
-* Linux/MacOS: If you get a "permission denied" error, add executable permissions to the file.
-  ```sh
-  chmod +x 8080_linux
-  chmod +x 8080_macos
-  ```
+| ROM | Author | License |
+|---|---|---|
+| `8080PRE.COM` | Frank D. Cringle (1994), adapted for the 8080 by Ian Bartholomew (2009) | GPL v2 or later |
+| `8080EXM.COM` | Frank D. Cringle and Ian Bartholomew, with pass/fail CRCs added by Mike Douglas (2013) | GPL v2 or later |
+| `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
+| `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
