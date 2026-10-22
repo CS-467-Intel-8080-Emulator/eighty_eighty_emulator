@@ -76,6 +76,8 @@ class CPU {
 
         // Opcode handlers
         uint32_t op_nop(Memory& memory);
+        uint32_t op_unimplemented(Memory& memory);
+
 
         // Machine control
         uint32_t op_hlt(Memory& memory);

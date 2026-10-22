@@ -12,10 +12,17 @@ CPU::CPU()
       io(nullptr)
 
     {
+        //
+        table.fill(&CPU::op_unimplemented);
+
+        
         // --- Explicit opcodes ---
         table[0x00] = &CPU::op_nop;
         table[0x3A] = &CPU::op_lda;
         table[0x32] = &CPU::op_sta;
+        table[0x2A] = &CPU::op_lhld;
+        table[0x22] = &CPU::op_shld;
+        table[0xEB] = &CPU::op_xchg;
 
         // --- MVI group (0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E) ---
         for (uint8_t opcode = 0x06; opcode <= 0x3E; opcode += 0x08) 
