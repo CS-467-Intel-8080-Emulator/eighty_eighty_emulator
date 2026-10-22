@@ -22,6 +22,10 @@ class CPU {
         // Opcode table
         std::array<OpFunc, 256> table;
 
+        // unimplmented code handler
+        uint32_t op_unimplemented(Memory& memory);
+
+
         // CPU state
         uint8_t a, b, c, d, e, h, l;
         uint16_t pc, sp;

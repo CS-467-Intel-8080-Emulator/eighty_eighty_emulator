@@ -1,6 +1,19 @@
 #include "cpu.hpp"
 #include "memory.hpp"
 #include "io_bus.hpp"
+#include "iostream"
+#include "iomanip"
+
+
+// Unimplmented catcher
+uint32_t CPU::op_unimplemented(Memory& memory) {
+    std::cerr << "Unimplemented opcode: 0x"
+              << std::hex << std::uppercase << (int)current_opcode
+              << " at PC=0x" << pc << std::dec << std::endl;
+
+    halted = true;
+    return 0;
+}
 
 /*
 Constructor for the CPU class
