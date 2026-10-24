@@ -12,17 +12,24 @@ class CPU {
         CPU();
         uint32_t step(Memory& memory);
         uint32_t interrupt(Memory& memory, uint8_t rst_num);
+        bool is_halted() const { return halted; }
 
         // Attach the machine's port handlers for IN/OUT
         void set_io(IOBus* bus);
 
-        // Register access for machines that need it (e.g. the CP/M test machine)
-        uint16_t get_pc() const { return pc; }
-        uint16_t get_sp() const { return sp; }
+        // Read-only register access
+        uint8_t get_a() const { return a; }
+        uint8_t get_b() const { return b; }
         uint8_t get_c() const { return c; }
         uint8_t get_d() const { return d; }
         uint8_t get_e() const { return e; }
-        bool is_halted() const { return halted; }
+        uint8_t get_h() const { return h; }
+        uint8_t get_l() const { return l; }
+        uint8_t get_flags() const { return flags; }
+        uint16_t get_pc() const { return pc; }
+        uint16_t get_sp() const { return sp; }
+
+        // Setters for loading and running programs
         void set_pc(uint16_t value) { pc = value; }
         void set_sp(uint16_t value) { sp = value; }
 
