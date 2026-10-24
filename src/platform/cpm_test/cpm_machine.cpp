@@ -1,16 +1,13 @@
-#include "cpm_machine.hpp"
-
 #include <array>
 #include <cstdio>
+
+#include "cpm_machine.hpp"
 
 // The test machine's memory: 64 KB of RAM
 static std::array<uint8_t, 0x10000> ram{};
 
-// Memory (core/memory.hpp) is a placeholder: it only declares these functions, and each
-// program that runs the CPU defines them with the memory behavior it needs (the unit tests
-// do the same in tests/test_memory.cpp). src/core/memory.cpp is left out of emu so these
-// don't collide with it. If Memory becomes an interface like IOBus, these definitions
-// become a CpmMemory class that the machine passes to the CPU instead.
+// START PLACEHOLDERS
+// Memory (core/memory.hpp) - placeholder (each program defines its functions)
 
 // Read one byte of memory
 uint8_t Memory::read(uint16_t addr) {
@@ -32,55 +29,67 @@ void Memory::push16(uint16_t& sp, uint16_t value) {
     ram[--sp] = value >> 8;
     ram[--sp] = value & 0xFF;
 }
+// END PLACEHOLDERS
 
+// Copy program to PROGRAM_START and set up the CPU
 bool CpmMachine::load(const std::vector<uint8_t>& program) {
-    
-    // Load program, starting at address 0x0100
-    if (program.size() > ram.size() - 0x0100) {
-        return false;
+
+    if (program.size() > ram.size() - PROGRAM_START) {
+        return false; // program too big
     }
+
+    // Copy program into memory
     for (size_t i = 0; i < program.size(); i++) {
-        ram[0x0100 + i] = program[i];
+        ram[PROGRAM_START + i] = program[i];
     }
 
-    // CP/M stores the top of usable memory (0xF000) at 0x0006-0x0007
-    ram[0x0006] = 0x00;
-    ram[0x0007] = 0xF0;
+    // Start at the program's first instruction
+    cpu.set_pc(PROGRAM_START);
 
-    cpu.set_pc(0x0100);
-    cpu.set_sp(0xF000);
+    // Set top of usable memory (low byte first)
+    ram[MEMORY_TOP_PTR]     = MEMORY_TOP & 0xFF;
+    ram[MEMORY_TOP_PTR + 1] = MEMORY_TOP >> 8;
+    cpu.set_sp(MEMORY_TOP);
+
     return true;
 }
 
+// Run program until it jumps to EXIT_ADDR or CPU halts (returns false)
 bool CpmMachine::run() {
-    // Check pc before each instruction, so CP/M's addresses are caught before they run
-    while (cpu.get_pc() != 0x0000) {    // 0x0000 means the program is done
-        if (cpu.get_pc() == 0x0005) {
-            bdos();
+    while (cpu.get_pc() != EXIT_ADDR) {
+
+        if (cpu.get_pc() == BDOS_ADDR) { // program executed "CALL BDOS_ADDR"
+            print_output();
+            return_to_caller();
         } else if (cpu.is_halted()) {
             return false;
         } else {
-            cycles_ += cpu.step(memory);
+            cycles += cpu.step(memory);
         }
     }
     return true;
 }
 
-void CpmMachine::bdos() {
-    if (cpu.get_c() == 2) {
-        // Print the character in E
+// Print output character or string, depending on value stored in register C
+void CpmMachine::print_output() {
+
+    // Print character stored in register E
+    if (cpu.get_c() == PRINT_CHAR) {
         std::putchar(cpu.get_e());
-    } else if (cpu.get_c() == 9) {
-        // Print the text at address DE, up to a '$'
+
+    // Print text starting at address in register DE, up to '$' character
+    } else if (cpu.get_c() == PRINT_STRING) {
         uint16_t addr = (uint16_t)((cpu.get_d() << 8) | cpu.get_e());
         while (ram[addr] != '$') {
             std::putchar(ram[addr]);
             addr++;
         }
     }
-    std::fflush(stdout);    // so output isn't lost if the CPU crashes later
+    std::fflush(stdout); // so output isn't lost if the CPU crashes later
+}
 
-    // Return to the program, the same way a RET instruction would
+// Return to caller after the program's "CALL BDOS_ADDR" instruction (similar to RET)
+void CpmMachine::return_to_caller() {
     uint16_t sp = cpu.get_sp();
     cpu.set_pc(memory.read16(sp));
     cpu.set_sp((uint16_t)(sp + 2));
