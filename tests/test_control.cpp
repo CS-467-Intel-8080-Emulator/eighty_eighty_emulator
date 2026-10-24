@@ -8,14 +8,12 @@
 
 #include "cpu_test_helpers.hpp"
 
-static Memory mem;
-
 // Stack starts here, as in Space Invaders (top of work RAM)
 static constexpr uint16_t STACK_TOP = 0x2400;
 
 // Word stored little-endian at addr (low byte at addr, high byte at addr + 1)
 static uint16_t stack_word(uint16_t addr) {
-    return test_ram[addr] | (test_ram[(uint16_t)(addr + 1)] << 8);
+    return mem.read(addr) | (mem.read((uint16_t)(addr + 1)) << 8);
 }
 
 

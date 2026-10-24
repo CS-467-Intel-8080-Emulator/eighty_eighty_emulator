@@ -8,10 +8,9 @@ include(FetchContent)
 
 # Core emulator library (src/core and src/platform -- no SDL)
 # Hand-list files for now. Later, use regex to gather all core/*.cpp and platform/*.cpp
-# memory.cpp is left out on purpose: tests/test_memory.cpp defines its own Memory
-# functions, so linking both into unit_tests would give duplicate-symbol errors.
 add_library(emu STATIC
     src/core/cpu.cpp
+    src/core/memory.cpp
 )
 target_include_directories(emu PUBLIC src)
 
