@@ -65,9 +65,9 @@ include(Catch)
 catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
 
 # --- CPU test ROMs ---
-# Downloaded at configure time instead of committed because two have no clear license.
-# Pinned to one commit of superzazu/8080, and each file's SHA-256 is checked.
-# ROMs go in build/test_roms/, which is already ignored by Git.
+# Download ROMs at configure time instead of committing them because two have
+# no clear license. Download ROMs from a specific superzazu/8080 commit, check
+# their SHA-256 values, and store them in build/test_roms/, which Git ignores.
 set(ROM_COMMIT 274ffd700b81baabea99b0963bc1260b67132185)
 set(ROM_URL https://raw.githubusercontent.com/superzazu/8080/${ROM_COMMIT}/cpu_tests)
 set(ROMS ${CMAKE_BINARY_DIR}/test_roms)
@@ -89,23 +89,38 @@ while(ROM_HASHES)
     endif()
 endwhile()
 
-# CP/M test machine four ROM tests. The tests are labeled "rom" so CI can
-# skip them (ctest -LE rom) until the CPU is ready to pass them.
+# CP/M test machine that runs the ROM tests.
 add_executable(cpm_test
     src/platform/cpm_test/main.cpp
     src/platform/cpm_test/cpm_machine.cpp
 )
 target_link_libraries(cpm_test PRIVATE emu)
 
+# 8080PRE test
 add_test(NAME 8080PRE COMMAND cpm_test ${ROMS}/8080PRE.COM)
+set_tests_properties(8080PRE PROPERTIES
+    PASS_REGULAR_EXPRESSION "8080 Preliminary tests complete"
+    TIMEOUT 10) # Finishes instantly, 10-second timeout
+
+# TST8080 test
 add_test(NAME TST8080 COMMAND cpm_test ${ROMS}/TST8080.COM)
+set_tests_properties(TST8080 PROPERTIES
+    PASS_REGULAR_EXPRESSION "CPU IS OPERATIONAL"
+    TIMEOUT 10) # Finishes instantly, 10-second timeout
+
+# CPUTEST test
 add_test(NAME CPUTEST COMMAND cpm_test ${ROMS}/CPUTEST.COM)
+set_tests_properties(CPUTEST PROPERTIES
+    PASS_REGULAR_EXPRESSION "CPU TESTS OK"
+    TIMEOUT 60) # Finishes in seconds, one-minute timeout
+
+# 8080EXM test
 add_test(NAME 8080EXM COMMAND cpm_test ${ROMS}/8080EXM.COM)
-set_tests_properties(8080PRE PROPERTIES PASS_REGULAR_EXPRESSION "8080 Preliminary tests complete")
-set_tests_properties(TST8080 PROPERTIES PASS_REGULAR_EXPRESSION "CPU IS OPERATIONAL")
-set_tests_properties(CPUTEST PROPERTIES PASS_REGULAR_EXPRESSION "CPU TESTS OK")
-set_tests_properties(8080EXM PROPERTIES PASS_REGULAR_EXPRESSION "Tests complete")
+set_tests_properties(8080EXM PROPERTIES
+    PASS_REGULAR_EXPRESSION "Tests complete"
+    TIMEOUT 600) # Finishes in minutes, ten-minute timeout
+
+# Global test ROM properties
 set_tests_properties(8080PRE TST8080 CPUTEST 8080EXM PROPERTIES
     FAIL_REGULAR_EXPRESSION "ERROR|FAIL"
-    LABELS rom
-    TIMEOUT 1800)    # stop after 30 minutes if the CPU is stuck
+    LABELS rom)
