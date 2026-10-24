@@ -28,9 +28,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      # -LE rom skips the CPU test ROMs until the CPU can pass them. Remove it then.
+      # Skip CPU test ROMs until the CPU can pass them. Remove "--label-exclude rom" once CPU is ready
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure -LE rom
+        run: ctest --test-dir build --build-config Release --output-on-failure --label-exclude rom
 
       # Copy game program (8080_linux, 8080_windows.exe, or 8080_macos) into distribution
       - name: Package the game
@@ -38,5 +38,5 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: 8080_${{ matrix.name }}
+          name: 8080_${{ matrix.os }}
           path: dist/

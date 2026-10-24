@@ -28,25 +28,22 @@ cmake --build build --config Release --parallel
 ```
 
 # Test
-`-C Release` runs optimized tests on Windows (ignored on Linux/macOS).
-
-Run only the Catch2 unit tests. `-LE rom` skips the [CPU Test ROMs](#cpu-test-roms) until we're ready to turn them on. CI skips them for now too.
+Run only the Catch2 unit tests. `--label-exclude rom` skips the [CPU Test ROMs](#cpu-test-roms) until we're ready to turn them on. CI skips them for now too. `--build-config Release` runs optimized tests on Windows (ignored on Linux/macOS).
 ```sh
-ctest --test-dir build -C Release --output-on-failure -LE rom
+ctest --test-dir build --build-config Release --output-on-failure --label-exclude rom
 ```
 
 Run individual CPU test ROMs.
 ```sh
-ctest --test-dir build -C Release --output-on-failure -R 8080PRE # instant
-ctest --test-dir build -C Release --output-on-failure -R TST8080 # instant
-ctest --test-dir build -C Release --output-on-failure -R CPUTEST # takes seconds
-ctest --test-dir build -C Release --output-on-failure -R 8080EXM # takes minutes
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080PRE # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # takes seconds
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # takes minutes
 ```
-
 
 Run all tests: the Catch2 unit tests and the CPU test ROMs.
 ```sh
-ctest --test-dir build -C Release --output-on-failure
+ctest --test-dir build --build-config Release --output-on-failure
 ```
 
 To watch a CPU test ROM's output as it runs, run the CP/M test machine directly:
@@ -90,11 +87,19 @@ unzip 8080_macos.zip
 xattr -d com.apple.quarantine 8080_macos
 ./8080_macos
 ```
-The `xattr -d ... line` clears the 'downloaded from the internet' flag that the browser adds.
+The `xattr -d ...` line clears the 'downloaded from the internet' flag that the browser adds.
 
 **Windows**:
 
 Extract the executable from the zip file and double-click `8080_windows.exe`.
+
+**Troubleshooting**:
+* Windows: If a "Windows protected your PC" dialog opens when you run the executable, click **More info** and then **Run anyway**.
+* Linux/macOS: If you get a "permission denied" error, add executable permissions to the file.
+  ```sh
+  chmod +x 8080_linux
+  chmod +x 8080_macos
+  ```
 
 # CPU Test ROMs
 The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
