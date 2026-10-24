@@ -39,8 +39,8 @@ uint16_t Memory::pop16(uint16_t& sp) {
     return (hi << 8) | lo;
 }
 
-void Memory::load_rom(const uint8_t* data, size_t size, uint16_t start_addr) {
+void Memory::load_rom(const uint8_t* data, std::size_t size, uint16_t start_addr) {
     // Load ROM into memory with wraparound at 0xFFFF
-    for (size_t i = 0; i < size; i++)
+    for (std::size_t i = 0; i < size; i++)
         mem[(start_addr + i) & 0xFFFF] = data[i];
 }

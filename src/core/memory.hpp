@@ -1,6 +1,7 @@
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <array>
 
@@ -23,7 +24,7 @@ public:
     uint16_t pop16(uint16_t& sp);
 
     // Load ROM data into memory with wraparound
-    void load_rom(const uint8_t* data, size_t size, uint16_t start_addr = 0);
+    void load_rom(const uint8_t* data, std::size_t size, uint16_t start_addr = 0);
 
 private:
     // Full 64 KB memory space
