@@ -62,3 +62,11 @@ enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
 catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
+
+# Spec-based CPU suite (tests/spec): gray-box tests of every
+# instruction, written from the Intel 8080 manual. Separate executable.
+file(GLOB SPEC_TEST_SOURCES CONFIGURE_DEPENDS tests/spec/*.cpp)
+add_executable(cpu_spec_tests ${SPEC_TEST_SOURCES})
+target_include_directories(cpu_spec_tests PRIVATE tests/spec)
+target_link_libraries(cpu_spec_tests PRIVATE emu Catch2::Catch2WithMain)
+catch_discover_tests(cpu_spec_tests TEST_PREFIX "spec:")
