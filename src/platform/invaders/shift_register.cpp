@@ -1,0 +1,9 @@
+#include "shift_register.hpp"
+
+void ShiftRegister::write_data(uint8_t value) {
+    value_ = (uint16_t)((value << 8) | (value_ >> 8));
+}
+
+uint8_t ShiftRegister::read() const {
+    return (uint8_t)(value_ >> 8);
+}
