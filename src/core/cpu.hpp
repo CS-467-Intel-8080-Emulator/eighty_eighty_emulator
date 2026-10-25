@@ -39,6 +39,10 @@ class CPU {
         // Opcode table
         std::array<OpFunc, 256> table;
 
+        // unimplmented code handler
+        uint32_t op_unimplemented(Memory& memory);
+
+
         // CPU state
         uint8_t a, b, c, d, e, h, l;
         uint16_t pc, sp;
@@ -94,6 +98,7 @@ class CPU {
         // Opcode handlers
         uint32_t op_nop(Memory& memory);
 
+
         // Machine control
         uint32_t op_hlt(Memory& memory);
         uint32_t op_ei(Memory& memory);
@@ -106,9 +111,9 @@ class CPU {
         // Data movement
         uint32_t op_mov(Memory& memory);
         uint32_t op_mvi(Memory& memory);
-        uint32_t op_lxi_b(Memory& memory);
-        uint32_t op_stax_b(Memory& memory);
-        uint32_t op_inx_b(Memory& memory);
+        uint32_t op_lxi(Memory& memory);
+        uint32_t op_inx(Memory& memory);
+        uint32_t op_dcx(Memory& memory);
         uint32_t op_lda(Memory& memory);
         uint32_t op_sta(Memory& memory);
         uint32_t op_ldax(Memory& memory);
