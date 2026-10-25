@@ -1,18 +1,37 @@
 name: CI
-on: [push, pull_request]
+on:
+  # Do not run CI on push or PR for Markdown-only changes
+  push:
+    paths-ignore: ['**.md']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**.md']
+  # Run weekly CI job on main (the only scheduled macOS run) on Mondays at 06:00 UTC.
+  # Also keeps main's build caches from expiring.
+  schedule:
+    - cron: '0 6 * * 1'
+  # Manual runs on all three OSes and any branch
+  workflow_dispatch:
+
+# A newer push to the same branch or PR cancels the run still in progress
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     strategy:
-      fail-fast: false # let all three OSes finish even if one fails
+      fail-fast: false # let all OSes finish even if one fails
       matrix:
-        include:
-          - os: ubuntu-latest
-            name: linux
-          - os: windows-latest
-            name: windows
-          - os: macos-latest
-            name: macos
+        # Which OSes run:
+        # - Push to any branch: Linux
+        # - PR into main: Linux and Windows
+        # - Weekly and manual runs: Linux, Windows, and macOS
+        # PRs into other branches don't trigger CI (covered by the push run on the PR's branch)
+        include: ${{ fromJSON(
+          github.event_name == 'push' && '[{"os":"ubuntu-latest","name":"linux"}]'
+          || github.event_name == 'pull_request' && '[{"os":"ubuntu-latest","name":"linux"},{"os":"windows-latest","name":"windows"}]'
+          || '[{"os":"ubuntu-latest","name":"linux"},{"os":"windows-latest","name":"windows"},{"os":"macos-latest","name":"macos"}]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -20,6 +39,15 @@ jobs:
       - name: Install SDL3 dependencies (Linux only)
         if: runner.os == 'Linux'
         run: sh scripts/install-linux-deps.sh
+
+      # Restore build folder from a previous run so dependencies aren't recompiled.
+      # When CMakeLists.txt changes, GitHub Actions saves a new cache after the build.
+      - name: Restore build cache
+        uses: actions/cache@v6
+        with:
+          path: build
+          key: build-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: build-${{ runner.os }}-
 
       # Build an optimized (Release) version on every OS.
       - name: Configure
@@ -29,7 +57,7 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
+        run: ctest --test-dir build --build-config Release --output-on-failure
 
       # Copy game program (8080_linux, 8080_windows.exe, or 8080_macos) into distribution
       - name: Package the game
@@ -39,3 +67,4 @@ jobs:
         with:
           name: 8080_${{ matrix.name }}
           path: dist/
+          retention-days: 14   # delete old artifacts to keep repo storage costs low
