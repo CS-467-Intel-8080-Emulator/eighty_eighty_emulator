@@ -8,8 +8,6 @@
 
 #include "cpu_test_helpers.hpp"
 
-static Memory mem;
-
 
 // --- JMP ---
 

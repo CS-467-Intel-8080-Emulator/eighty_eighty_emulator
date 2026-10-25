@@ -8,7 +8,7 @@
 #include <initializer_list>
 
 #include "../src/core/cpu.hpp"
-#include "test_memory.hpp"
+#include "../src/core/memory.hpp"
 
 // Access to private CPU registers
 struct CPUTestAccess {
@@ -39,12 +39,15 @@ inline constexpr uint8_t ALL_FLAGS = CY | P | AC | Z | S;
 // Programs load here so a fall-through can't be confused with PC = 0
 inline constexpr uint16_t ORIGIN = 0x0100;
 
-// Clears memory and loads program at ORIGIN
+// Memory shared by all CPU tests. make_cpu() resets it for each test.
+inline Memory mem;
+
+// Reinitializes memory and loads program at ORIGIN
 inline CPU make_cpu(std::initializer_list<uint8_t> program, uint8_t flags = 0) {
-    test_ram.fill(0);
+    mem = Memory();
     uint16_t addr = ORIGIN;
     for (uint8_t byte : program)
-        test_ram[addr++] = byte;
+        mem.write(addr++, byte);
 
     CPU cpu;
     T::pc(cpu) = ORIGIN;
