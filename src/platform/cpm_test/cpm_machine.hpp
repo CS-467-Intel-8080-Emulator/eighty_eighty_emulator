@@ -1,6 +1,7 @@
 #ifndef CPM_MACHINE_HPP
 #define CPM_MACHINE_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -41,6 +42,7 @@ private:
     static constexpr uint16_t MEMORY_TOP_PTR = 0x0006;
     static constexpr uint16_t PROGRAM_START  = 0x0100;
     static constexpr uint16_t MEMORY_TOP     = 0xF000;
+    static constexpr std::size_t MEMORY_SIZE = 0x10000;  // 64 KB address space
 
     // BDOS function numbers. A program requests a BDOS function by putting its
     // number in register C (plus E or DE as below), then executing CALL BDOS_ADDR.

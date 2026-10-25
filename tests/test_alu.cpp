@@ -29,8 +29,6 @@ inline std::ostream& operator<<(std::ostream& os, const Hex& h) {
 // Compares S, Z, AC, P, CY only
 #define CHECK_FLAGS(cpu, expected) CHECK_HEX(T::flags(cpu) & ALL_FLAGS, (expected))
 
-static Memory mem;
-
 
 // --- Addition ---
 
@@ -56,7 +54,7 @@ TEST_CASE("ADD", "[alu]") {
     T::a(cpu) = 0x05;
     T::h(cpu) = 0x20;
     T::l(cpu) = 0x00;
-    test_ram[0x2000] = 0x10;
+    mem.write(0x2000, 0x10);
     CHECK(cpu.step(mem) == 7);
     CHECK_HEX(T::a(cpu), 0x15);
     CHECK_FLAGS(cpu, 0);
@@ -269,9 +267,9 @@ TEST_CASE("INR and DCR", "[alu]") {
     cpu = make_cpu({0x34});                // INR M
     T::h(cpu) = 0x20;
     T::l(cpu) = 0x10;
-    test_ram[0x2010] = 0x41;
+    mem.write(0x2010, 0x41);
     CHECK(cpu.step(mem) == 10);
-    CHECK_HEX(test_ram[0x2010], 0x42);
+    CHECK_HEX(mem.read(0x2010), 0x42);
     CHECK_FLAGS(cpu, P);
 
     // DCR wraps to 0xFF, CY unchanged
@@ -299,9 +297,9 @@ TEST_CASE("INR and DCR", "[alu]") {
     cpu = make_cpu({0x35});                // DCR M
     T::h(cpu) = 0x20;
     T::l(cpu) = 0x10;
-    test_ram[0x2010] = 0x01;
+    mem.write(0x2010, 0x01);
     CHECK(cpu.step(mem) == 10);
-    CHECK_HEX(test_ram[0x2010], 0x00);
+    CHECK_HEX(mem.read(0x2010), 0x00);
     CHECK_FLAGS(cpu, Z | AC | P);
 }
 

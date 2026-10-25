@@ -8,20 +8,18 @@
 
 #include "cpu_test_helpers.hpp"
 
-static Memory mem;
-
 // Stack starts here, as in Space Invaders (top of work RAM)
 static constexpr uint16_t STACK_TOP = 0x2400;
 
 // Word stored little-endian at addr (low byte at addr, high byte at addr + 1)
 static uint16_t stack_word(uint16_t addr) {
-    return test_ram[addr] | (test_ram[(uint16_t)(addr + 1)] << 8);
+    return mem.read(addr) | (mem.read((uint16_t)(addr + 1)) << 8);
 }
 
 // Places a word on the stack the way a push would leave it
 static void put_stack_word(uint16_t addr, uint16_t value) {
-    test_ram[addr] = value & 0xFF;
-    test_ram[(uint16_t)(addr + 1)] = value >> 8;
+    mem.write(addr, value & 0xFF);
+    mem.write((uint16_t)(addr + 1), value >> 8);
 }
 
 
@@ -34,8 +32,8 @@ TEST_CASE("CALL pushes the return address and jumps", "[cpu][call]") {
     CHECK(cpu.step(mem) == 17);
     CHECK(T::pc(cpu) == 0x1234);
     CHECK(T::sp(cpu) == STACK_TOP - 2);
-    CHECK(test_ram[STACK_TOP - 1] == 0x01);    // high byte of ORIGIN + 3
-    CHECK(test_ram[STACK_TOP - 2] == 0x03);    // low byte of ORIGIN + 3
+    CHECK(mem.read(STACK_TOP - 1) == 0x01);    // high byte of ORIGIN + 3
+    CHECK(mem.read(STACK_TOP - 2) == 0x03);    // low byte of ORIGIN + 3
 }
 
 TEST_CASE("CALL does not change flags", "[cpu][call]") {
@@ -51,8 +49,8 @@ TEST_CASE("CALL wraps SP below 0x0000", "[cpu][call]") {
         T::sp(cpu) = 0x0001;
         cpu.step(mem);
         CHECK(T::sp(cpu) == 0xFFFF);
-        CHECK(test_ram[0x0000] == 0x01);
-        CHECK(test_ram[0xFFFF] == 0x03);
+        CHECK(mem.read(0x0000) == 0x01);
+        CHECK(mem.read(0xFFFF) == 0x03);
     }
 
     SECTION("SP = 0x0000: return address at the top of memory") {
@@ -109,8 +107,8 @@ TEST_CASE("RET pops PC from the stack", "[cpu][ret]") {
 TEST_CASE("RET wraps SP above 0xFFFF", "[cpu][ret]") {
     CPU cpu = make_cpu({0xC9});
     T::sp(cpu) = 0xFFFF;
-    test_ram[0xFFFF] = 0x34;                   // low byte
-    test_ram[0x0000] = 0x12;                   // high byte
+    mem.write(0xFFFF, 0x34);                   // low byte
+    mem.write(0x0000, 0x12);                   // high byte
 
     cpu.step(mem);
     CHECK(T::pc(cpu) == 0x1234);
@@ -119,7 +117,7 @@ TEST_CASE("RET wraps SP above 0xFFFF", "[cpu][ret]") {
 
 TEST_CASE("CALL then RET returns to the next instruction", "[cpu][call][ret]") {
     CPU cpu = make_cpu({0xCD, 0x00, 0x02}, ALL_FLAGS);    // CALL 0x0200
-    test_ram[0x0200] = 0xC9;                               // RET
+    mem.write(0x0200, 0xC9);                              // RET
     T::sp(cpu) = STACK_TOP;
 
     cpu.step(mem);

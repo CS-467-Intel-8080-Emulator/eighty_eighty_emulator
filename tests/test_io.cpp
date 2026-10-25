@@ -11,8 +11,6 @@
 #include "cpu_test_helpers.hpp"
 #include "../src/core/io_bus.hpp"
 
-static Memory mem;
-
 // Test bus: returns preset values for IN and records every IN/OUT
 struct FakeIO : IOBus {
     std::array<uint8_t, 256> inputs{};

@@ -8,10 +8,9 @@ include(FetchContent)
 
 # Core emulator library (src/core and src/platform -- no SDL)
 # Hand-list files for now. Later, use regex to gather all core/*.cpp and platform/*.cpp
-# memory.cpp is left out on purpose: tests/test_memory.cpp defines its own Memory
-# functions, so linking both into unit_tests would give duplicate-symbol errors.
 add_library(emu STATIC
     src/core/cpu.cpp
+    src/core/memory.cpp
 )
 target_include_directories(emu PUBLIC src)
 
@@ -63,6 +62,14 @@ enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
 catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
+
+# Spec-based CPU suite (tests/spec): gray-box tests of every
+# instruction, written from the Intel 8080 manual. Separate executable.
+file(GLOB SPEC_TEST_SOURCES CONFIGURE_DEPENDS tests/spec/*.cpp)
+add_executable(cpu_spec_tests ${SPEC_TEST_SOURCES})
+target_include_directories(cpu_spec_tests PRIVATE tests/spec)
+target_link_libraries(cpu_spec_tests PRIVATE emu Catch2::Catch2WithMain)
+catch_discover_tests(cpu_spec_tests TEST_PREFIX "spec:")
 
 # --- CPU test ROMs ---
 # Download ROMs at configure time instead of committing them because two have
