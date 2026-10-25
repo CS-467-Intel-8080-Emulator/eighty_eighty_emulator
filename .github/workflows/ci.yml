@@ -66,6 +66,6 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: 8080_${{ matrix.os }}
+          name: 8080_${{ matrix.name }}
           path: dist/
           retention-days: 14   # delete old artifacts to keep repo storage costs low
