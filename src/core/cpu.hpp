@@ -4,26 +4,26 @@
 #include <array>
 #include <cstdint>
 
-class Memory;
+class MemoryBus;
 class IOBus;
 
 class CPU {
     public:
         CPU();
-        uint32_t step(Memory& memory);
-        uint32_t interrupt(Memory& memory, uint8_t rst_num);
+        uint32_t step(MemoryBus& memory);
+        uint32_t interrupt(MemoryBus& memory, uint8_t rst_num);
 
         // Attach the machine's port handlers for IN/OUT
         void set_io(IOBus* bus);
 
     private:
-        using OpFunc = uint32_t (CPU::*)(Memory& memory);
+        using OpFunc = uint32_t (CPU::*)(MemoryBus& memory);
         
         // Opcode table
         std::array<OpFunc, 256> table;
 
         // unimplmented code handler
-        uint32_t op_unimplemented(Memory& memory);
+        uint32_t op_unimplemented(MemoryBus& memory);
 
 
         // CPU state
@@ -41,19 +41,19 @@ class CPU {
         IOBus* io;
 
         // Fetch helpers
-        uint8_t fetch_byte(Memory& memory);
-        uint16_t fetch_word(Memory& memory);
+        uint8_t fetch_byte(MemoryBus& memory);
+        uint16_t fetch_word(MemoryBus& memory);
 
         // Condition helper (Jcc, Ccc, Rcc)
         bool check_condition(uint8_t cc) const;
 
         // Stack helpers (CALL, Ccc, RST, RET, Rcc, interrupts)
-        void push_word(Memory& memory, uint16_t value);
-        uint16_t pop_word(Memory& memory);
+        void push_word(MemoryBus& memory, uint16_t value);
+        uint16_t pop_word(MemoryBus& memory);
 
         // Register/memory helpers
-        uint8_t read_reg_or_memory(uint8_t index, Memory& memory);
-        void write_reg_or_memory(uint8_t index, uint8_t value, Memory& memory);
+        uint8_t read_reg_or_memory(uint8_t index, MemoryBus& memory);
+        void write_reg_or_memory(uint8_t index, uint8_t value, MemoryBus& memory);
 
         // Flag helpers
         void update_flags_add(uint8_t a, uint8_t value, uint16_t result);
@@ -79,75 +79,75 @@ class CPU {
         static constexpr uint8_t FLAG_SIGN = 0x80;
 
         // Opcode handlers
-        uint32_t op_nop(Memory& memory);
+        uint32_t op_nop(MemoryBus& memory);
 
 
         // Machine control
-        uint32_t op_hlt(Memory& memory);
-        uint32_t op_ei(Memory& memory);
-        uint32_t op_di(Memory& memory);
+        uint32_t op_hlt(MemoryBus& memory);
+        uint32_t op_ei(MemoryBus& memory);
+        uint32_t op_di(MemoryBus& memory);
 
         // I/O
-        uint32_t op_in(Memory& memory);
-        uint32_t op_out(Memory& memory);
+        uint32_t op_in(MemoryBus& memory);
+        uint32_t op_out(MemoryBus& memory);
 
         // Data movement
-        uint32_t op_mov(Memory& memory);
-        uint32_t op_mvi(Memory& memory);
-        uint32_t op_lxi(Memory& memory);
-        uint32_t op_inx(Memory& memory);
-        uint32_t op_dcx(Memory& memory);
-        uint32_t op_lda(Memory& memory);
-        uint32_t op_sta(Memory& memory);
-        uint32_t op_ldax(Memory& memory);
-        uint32_t op_stax(Memory& memory);
-        uint32_t op_lhld(Memory& memory);
-        uint32_t op_shld(Memory& memory);
-        uint32_t op_xchg(Memory& memory);
+        uint32_t op_mov(MemoryBus& memory);
+        uint32_t op_mvi(MemoryBus& memory);
+        uint32_t op_lxi(MemoryBus& memory);
+        uint32_t op_inx(MemoryBus& memory);
+        uint32_t op_dcx(MemoryBus& memory);
+        uint32_t op_lda(MemoryBus& memory);
+        uint32_t op_sta(MemoryBus& memory);
+        uint32_t op_ldax(MemoryBus& memory);
+        uint32_t op_stax(MemoryBus& memory);
+        uint32_t op_lhld(MemoryBus& memory);
+        uint32_t op_shld(MemoryBus& memory);
+        uint32_t op_xchg(MemoryBus& memory);
 
         // Arithmetic
-        uint32_t op_add(Memory& memory);
-        uint32_t op_adc(Memory& memory);
-        uint32_t op_sub(Memory& memory);
-        uint32_t op_sbb(Memory& memory);
-        uint32_t op_ana(Memory& memory);
-        uint32_t op_xra(Memory& memory);
-        uint32_t op_ora(Memory& memory);
-        uint32_t op_cmp(Memory& memory);
-        uint32_t op_inr(Memory& memory);
-        uint32_t op_dcr(Memory& memory);
-        uint32_t op_dad(Memory& memory);
-        uint32_t op_daa(Memory& memory);
+        uint32_t op_add(MemoryBus& memory);
+        uint32_t op_adc(MemoryBus& memory);
+        uint32_t op_sub(MemoryBus& memory);
+        uint32_t op_sbb(MemoryBus& memory);
+        uint32_t op_ana(MemoryBus& memory);
+        uint32_t op_xra(MemoryBus& memory);
+        uint32_t op_ora(MemoryBus& memory);
+        uint32_t op_cmp(MemoryBus& memory);
+        uint32_t op_inr(MemoryBus& memory);
+        uint32_t op_dcr(MemoryBus& memory);
+        uint32_t op_dad(MemoryBus& memory);
+        uint32_t op_daa(MemoryBus& memory);
 
         // Immediates
-        uint32_t op_adi(Memory& memory);
-        uint32_t op_aci(Memory& memory);
-        uint32_t op_sui(Memory& memory);
-        uint32_t op_sbi(Memory& memory);
-        uint32_t op_ani(Memory& memory);
-        uint32_t op_xri(Memory& memory);
-        uint32_t op_ori(Memory& memory);
-        uint32_t op_cpi(Memory& memory);
+        uint32_t op_adi(MemoryBus& memory);
+        uint32_t op_aci(MemoryBus& memory);
+        uint32_t op_sui(MemoryBus& memory);
+        uint32_t op_sbi(MemoryBus& memory);
+        uint32_t op_ani(MemoryBus& memory);
+        uint32_t op_xri(MemoryBus& memory);
+        uint32_t op_ori(MemoryBus& memory);
+        uint32_t op_cpi(MemoryBus& memory);
 
         // Rotates and carry
-        uint32_t op_rlc(Memory& memory);
-        uint32_t op_rrc(Memory& memory);
-        uint32_t op_ral(Memory& memory);
-        uint32_t op_rar(Memory& memory);
-        uint32_t op_cma(Memory& memory);
-        uint32_t op_stc(Memory& memory);
-        uint32_t op_cmc(Memory& memory);
+        uint32_t op_rlc(MemoryBus& memory);
+        uint32_t op_rrc(MemoryBus& memory);
+        uint32_t op_ral(MemoryBus& memory);
+        uint32_t op_rar(MemoryBus& memory);
+        uint32_t op_cma(MemoryBus& memory);
+        uint32_t op_stc(MemoryBus& memory);
+        uint32_t op_cmc(MemoryBus& memory);
 
         // Control flow / Branching
-        uint32_t op_branching(Memory& memory);
-        uint32_t op_jmp(Memory& memory);
-        uint32_t op_jcc(Memory& memory);
-        uint32_t op_call(Memory& memory);
-        uint32_t op_ccc(Memory& memory);
-        uint32_t op_ret(Memory& memory);
-        uint32_t op_rcc(Memory& memory);
-        uint32_t op_rst(Memory& memory);
-        uint32_t op_pchl(Memory& memory);
+        uint32_t op_branching(MemoryBus& memory);
+        uint32_t op_jmp(MemoryBus& memory);
+        uint32_t op_jcc(MemoryBus& memory);
+        uint32_t op_call(MemoryBus& memory);
+        uint32_t op_ccc(MemoryBus& memory);
+        uint32_t op_ret(MemoryBus& memory);
+        uint32_t op_rcc(MemoryBus& memory);
+        uint32_t op_rst(MemoryBus& memory);
+        uint32_t op_pchl(MemoryBus& memory);
 
         // Unit test access
         friend struct CPUTestAccess;
