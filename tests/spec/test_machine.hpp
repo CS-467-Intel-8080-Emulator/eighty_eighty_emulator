@@ -27,7 +27,7 @@
 
 #include "core/cpu.hpp"
 #include "core/io_bus.hpp"
-#include "core/memory.hpp"
+#include "core/flat_memory.hpp"
 
 namespace spec {
 
@@ -187,7 +187,7 @@ public:
     RecordingIO& io() { return io_; }
 
 private:
-    Memory memory_;
+    FlatMemory memory_;
     RecordingIO io_;
     CPU cpu_;
 };
