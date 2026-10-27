@@ -175,7 +175,7 @@ CPU::CPU()
     }
 
     uint8_t opcode = memory.read(pc);
-    pc = (pc +1) & 0xFFF;
+    pc = (pc +1) & 0xFFFF;
     current_opcode = opcode;
     return (this->*table[current_opcode])(memory);
 }
