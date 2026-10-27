@@ -11,6 +11,7 @@ include(FetchContent)
 add_library(emu STATIC
     src/core/cpu.cpp
     src/core/memory.cpp
+    src/platform/invaders/interrupt_schedule.cpp
 )
 target_include_directories(emu PUBLIC src)
 
