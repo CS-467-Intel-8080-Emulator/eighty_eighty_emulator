@@ -6,7 +6,7 @@
 
 
 // Unimplmented catcher
-uint32_t CPU::op_unimplemented(Memory& memory) {
+uint32_t CPU::op_unimplemented(Memory&) {
     std::cerr << "Unimplemented opcode: 0x"
               << std::hex << std::uppercase << (int)current_opcode
               << " at PC=0x" << pc << std::dec << std::endl;
@@ -31,6 +31,13 @@ CPU::CPU()
         
         // --- Explicit opcodes ---
         table[0x00] = &CPU::op_nop;
+        table[0x08] = &CPU::op_nop;
+        table[0x10] = &CPU::op_nop;
+        table[0x18] = &CPU::op_nop;
+        table[0x20] = &CPU::op_nop;
+        table[0x28] = &CPU::op_nop;
+        table[0x30] = &CPU::op_nop;
+        table[0x38] = &CPU::op_nop;
         table[0x3A] = &CPU::op_lda;
         table[0x32] = &CPU::op_sta;
         table[0x2A] = &CPU::op_lhld;
@@ -65,7 +72,17 @@ CPU::CPU()
         // --- STAX group (0x02, 0x12) ---
         for (uint8_t opcode = 0; opcode <= 1; opcode++)
             table[(opcode << 4) | 0x2] = &CPU::op_stax;
-        
+
+        // --- PUSH group (C5, D5, E5, F5)---
+        for (uint8_t opcode = 0xC; opcode <= 0xF; opcode++){
+            table[(opcode << 4) | 0x5] = &CPU::op_push;
+        }
+
+        // -- POP group (0xC1, 0xD1, 0xE1, 0xF1) ---
+        for (uint8_t opcode = 0xC; opcode <= 0xF; opcode++) {
+            table[(opcode << 4) | 0x1] = &CPU::op_pop;
+        }
+
         // --- Arithmetic group (0x80 - 0x9F) ---
         for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++) 
             table[opcode] = &CPU::op_add;
@@ -106,10 +123,6 @@ CPU::CPU()
         table[0x37] = &CPU::op_stc;
         table[0x3F] = &CPU::op_cmc;
 
-        // --- Branching group (0xC0 - 0xFF) ---
-        for (uint16_t opcode = 0xC0; opcode <= 0xFF; opcode++)
-            table[opcode] = &CPU::op_branching;
-
         // --- Control flow: conditional (one opcode per condition code) ---
         for (uint16_t op = 0xC2; op <= 0xFA; op += 0x08) table[op] = &CPU::op_jcc;
 
@@ -122,6 +135,11 @@ CPU::CPU()
         for (uint16_t op = 0xC0; op <= 0xF8; op += 0x08) table[op] = &CPU::op_rcc;
         for (uint16_t op = 0xC7; op <= 0xFF; op += 0x08) table[op] = &CPU::op_rst;
         table[0xCD] = &CPU::op_call;
+        table[0xDD] = &CPU::op_call;
+        table[0xED] = &CPU::op_call;
+        table[0xFD] = &CPU::op_call;
+
+        table[0xD9] = &CPU::op_ret;
         table[0xC9] = &CPU::op_ret;
         table[0xE9] = &CPU::op_pchl;
 
@@ -142,6 +160,8 @@ CPU::CPU()
         table[0xEE] = &CPU::op_xri;
         table[0xF6] = &CPU::op_ori;
         table[0xFE] = &CPU::op_cpi;
+        table[0xE3] = &CPU::op_xthl;
+        table[0xf9] = &CPU::op_sphl;
     }
 
  uint32_t CPU::step(Memory& memory) {
@@ -155,7 +175,7 @@ CPU::CPU()
     }
 
     uint8_t opcode = memory.read(pc);
-    pc++;
+    pc = (pc +1) & 0xFFF;
     current_opcode = opcode;
     return (this->*table[current_opcode])(memory);
 }
@@ -171,23 +191,37 @@ uint8_t CPU::fetch_byte(Memory& memory) {
 
 // Fetch a word (2 bytes)
 uint16_t CPU::fetch_word(Memory& memory) {
-    uint8_t lo = memory.read(pc++);
-    uint8_t hi = memory.read(pc++);
+    uint8_t lo = memory.read(pc);
+    pc = (pc + 1) & 0xFFFF;
+
+    uint8_t hi = memory.read(pc);
+    pc = (pc + 1) & 0xFFFF;
+
     return (hi << 8) | lo;
 }
 
 // Push a word (SP wraps at 0x0000)
-void CPU::push_word(Memory& memory, uint16_t value) {
+void CPU::push_word(Memory& memory, uint16_t value)
+{
     uint8_t hi = value >> 8;
     uint8_t lo = value & 0xFF;
-    memory.write(--sp, hi);
-    memory.write(--sp, lo);
+
+    sp = (sp - 1) & 0xFFFF;
+    memory.write(sp, hi);
+
+    sp = (sp - 1) & 0xFFFF;
+    memory.write(sp, lo);
 }
 
 // Pop a word (SP wraps at 0xFFFF)
-uint16_t CPU::pop_word(Memory& memory) {
-    uint8_t lo = memory.read(sp++);
-    uint8_t hi = memory.read(sp++);
+uint16_t CPU::pop_word(Memory& memory)
+{
+    uint8_t lo = memory.read(sp);
+    sp = (sp + 1) & 0xFFFF;
+
+    uint8_t hi = memory.read(sp);
+    sp = (sp + 1) & 0xFFFF;
+
     return (hi << 8) | lo;
 }
 
@@ -236,7 +270,7 @@ uint32_t CPU::op_lxi(Memory& memory) {
     return 10;
 }
 
-// MOV r1, r2 instruction handler
+// MOV instruction handler
 uint32_t CPU::op_mov(Memory& memory) {
     uint8_t src = current_opcode & 0x07; 
     uint8_t dst = (current_opcode >> 3) & 0x07;
@@ -244,7 +278,7 @@ uint32_t CPU::op_mov(Memory& memory) {
     uint8_t value = read_reg_or_memory(src, memory);
     write_reg_or_memory(dst, value, memory);
 
-    return 7;
+    return (src == 6 || dst == 6) ? 7 : 5;
 }
 
 // MVI instruction handler
@@ -276,7 +310,7 @@ uint32_t CPU::op_lhld(Memory& memory){
     uint16_t addr = fetch_word(memory);
     // Load L then H from memory
     l = memory.read(addr);
-    h = memory.read(addr + 1);
+    h = memory.read(addr + 1) & 0xFFFF;
     return 16;
 }
 
@@ -285,7 +319,7 @@ uint32_t CPU::op_shld(Memory& memory){
     uint16_t addr = fetch_word(memory);
     // Store L then H to memory
     memory.write(addr, l);
-    memory.write(addr + 1, h);
+    memory.write((addr + 1) & 0xFFFF, h);
     return 16;
 }
 
@@ -389,6 +423,82 @@ uint32_t CPU::op_dcx(Memory& memory) {
             sp--;
             break;
     }
+    return 5;
+}
+
+// PUSH instruction handler (Push B, D, H, PSW)
+uint32_t CPU::op_push(Memory& memory){
+    uint16_t value = 0;
+
+    switch (current_opcode) {
+        case 0xC5: // Push B
+            value = (b << 8) | c;
+            break;
+
+        case 0xD5: // Push D
+            value = (d << 8) | e;
+            break;
+
+        case 0xE5: // PUSH H
+            value = (h << 8) | l;
+            break;
+
+        case 0xF5: // PUSH PSW
+            value = (a << 8) | (flags | 0x02);
+            break;
+    }
+
+    push_word(memory, value);
+    return 11;
+
+}
+
+// POP instruction handler
+uint32_t CPU::op_pop(Memory& memory){
+    uint16_t value = pop_word(memory);
+
+    switch (current_opcode) {
+        case 0xC1: // POP B
+            b = (value >> 8) & 0xFF;
+            c = value & 0xFF;
+            break;
+
+        case 0xD1: // POP D
+            d = (value >> 8) & 0xFF;
+            e = value & 0xFF;
+            break;
+
+        case 0xE1: // POP H
+            h = (value >> 8) & 0xFF;
+            l = value & 0xFF;
+            break;
+
+        case 0xF1: // POP PSW
+            a = (value >> 8) & 0xFF;
+            flags = (value & 0xFF) | 0x02;
+            break;
+    }
+
+    return 10;
+}
+
+// XTHL instruction handler
+uint32_t CPU::op_xthl(Memory& memory){
+    uint8_t temp_l = l;
+    uint8_t temp_h = h;
+
+    l = memory.read(sp);
+    h = memory.read(sp + 1) & 0xFFFF;
+
+    memory.write(sp, temp_l);
+    memory.write(sp +1, temp_h);
+
+    return 18;
+}
+
+// SPHL instruction handler
+uint32_t CPU::op_sphl (Memory& memory) {
+    sp = (h << 8) | l;
     return 5;
 }
 
@@ -505,11 +615,6 @@ uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
     // The interrupting device supplies an RST n instruction (0xC7 + 8*n)
     current_opcode = 0xC7 | (rst_num << 3);
     return op_rst(memory);
-}
-
-// TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)
-uint32_t CPU::op_branching(Memory&) {
-    return 4;
 }
 
 /*
