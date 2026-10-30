@@ -13,6 +13,13 @@ public:
     void out(uint8_t port, uint8_t value) override;
 
 private:
+    // IN ports
+    static constexpr uint8_t PORT_SHIFT_READ = 3;
+
+    // OUT ports
+    static constexpr uint8_t PORT_SHIFT_OFFSET = 2;
+    static constexpr uint8_t PORT_SHIFT_DATA = 4;
+
     ShiftRegister shift_;
 };
 
