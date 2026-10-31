@@ -28,31 +28,28 @@ cmake --build build --config Release --parallel
 ```
 
 # Test
-Run only the Catch2 unit tests. `--label-exclude rom` skips the [CPU Test ROMs](#cpu-test-roms) until we're ready to turn them on. CI skips them for now too. `--build-config Release` runs optimized tests on Windows (ignored on Linux/macOS).
-```sh
-ctest --test-dir build --build-config Release --output-on-failure --label-exclude rom
-```
-
-Run individual CPU test ROMs.
-```sh
-ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080PRE # instant
-ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
-ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # takes seconds
-ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # takes minutes
-```
-
-Run all tests: the Catch2 unit tests and the CPU test ROMs.
+Run all tests.
 ```sh
 ctest --test-dir build --build-config Release --output-on-failure
 ```
 
-To watch a CPU test ROM's output as it runs, run the CP/M test machine directly:
+Optional: Run specific tests.
 ```sh
-# Windows
-.\build\Release\cpm_test.exe build\test_roms\TST8080.COM
+# Catch2 unit tests only
+ctest --test-dir build --build-config Release --output-on-failure --label-exclude cpu-test
 
-# Linux/macOS
-./build/cpm_test build/test_roms/TST8080.COM
+# CPU test ROMs only
+ctest --test-dir build --build-config Release --output-on-failure --label-regex cpu-test
+
+# Individual CPU test ROMs
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080PRE # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # < 1s
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # ~30s
+
+# Run test ROMs directly
+.\build\Release\cpm_test.exe build\test_roms\TST8080.COM # Windows
+./build/cpm_test build/test_roms/TST8080.COM # Linux/macOS
 ```
 
 # Run

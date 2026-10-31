@@ -4,9 +4,10 @@
 #include "iostream"
 #include "iomanip"
 
-
-// Unimplmented catcher
-uint32_t CPU::op_unimplemented(Memory& memory) {
+// ===============================================================
+// UNIMPLEMENTED OPCODE CATCHER
+// ===============================================================
+uint32_t CPU::op_unimplemented(Memory&) {
     std::cerr << "Unimplemented opcode: 0x"
               << std::hex << std::uppercase << (int)current_opcode
               << " at PC=0x" << pc << std::dec << std::endl;
@@ -15,135 +16,224 @@ uint32_t CPU::op_unimplemented(Memory& memory) {
     return 0;
 }
 
-/*
-Constructor for the CPU class
- */
+// ===============================================================
+// CONSTRUCTOR FOR THE CPU CLASS
+// ===============================================================
 CPU::CPU()
-    : a(0), b(0), c(0), d(0), e(0), h(0), l(0),
-      pc(0), sp(0), flags(0),
-      interrupts_enabled(false), ei_pending(false), halted(false),
+    : a(0),
+      b(0),
+      c(0),
+      d(0),
+      e(0),
+      h(0),
+      l(0),
+      pc(0),
+      sp(0),
+      flags(0),
+      current_opcode(0),
+      interrupts_enabled(false),
+      ei_pending(false),
+      halted(false),
       io(nullptr)
+{
+    table.fill(&CPU::op_unimplemented);
 
-    {
-        //
-        table.fill(&CPU::op_unimplemented);
+    // ============================================================
+    // BASE INSTRUCTIONS
+    // ============================================================
 
-        
-        // --- Explicit opcodes ---
-        table[0x00] = &CPU::op_nop;
-        table[0x3A] = &CPU::op_lda;
-        table[0x32] = &CPU::op_sta;
-        table[0x2A] = &CPU::op_lhld;
-        table[0x22] = &CPU::op_shld;
-        table[0xEB] = &CPU::op_xchg;
+    table[0x00] = &CPU::op_nop;
+    table[0x08] = &CPU::op_nop;
+    table[0x10] = &CPU::op_nop;
+    table[0x18] = &CPU::op_nop;
+    table[0x20] = &CPU::op_nop;
+    table[0x28] = &CPU::op_nop;
+    table[0x30] = &CPU::op_nop;
+    table[0x38] = &CPU::op_nop;
 
-        // --- MVI group (0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E) ---
-        for (uint8_t opcode = 0x06; opcode <= 0x3E; opcode += 0x08) 
-            table[opcode] = &CPU::op_mvi;
-            
-        // --- MOV group (0x40 - 0x7F) ---
-        for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++) 
-            table[opcode] = &CPU::op_mov;
-        table[0x76] = &CPU::op_hlt;     // must follow MOV loop
+    // ============================================================
+    // MACHINE CONTROL
+    // ============================================================
 
-        // --- LXI group (0x01, 0x11, 0x21, 0x31) ---
-        for (uint8_t opcode = 0; opcode <= 3; opcode++)
-            table[(opcode << 4) | 0x1] = &CPU::op_lxi;
+    table[0x76] = &CPU::op_hlt;
+    table[0xF3] = &CPU::op_di;
+    table[0xFB] = &CPU::op_ei;
 
-        // --- INX group (0x03, 0x13, 0x23, 0x33) ---
-        for (uint8_t opcode = 0; opcode <= 3; opcode++)
-            table[(opcode << 4) | 0x3] = &CPU::op_inx;
-        
-        // --- DCX group (0x0B, 0x1B, 0x2B, 0x3B) ---
-         for (uint8_t opcode = 0; opcode <= 3; opcode++)
-            table[(opcode << 4) | 0xB] = &CPU::op_dcx;
+    // ============================================================
+    // I/O
+    // ============================================================
 
-        // --- LDAX group (0x0A, 0x1A) ---
-        for (uint8_t opcode = 0; opcode <= 1; opcode++)
-            table[(opcode << 4) | 0xA] = &CPU::op_ldax;
+    table[0xDB] = &CPU::op_in;
+    table[0xD3] = &CPU::op_out;
 
-        // --- STAX group (0x02, 0x12) ---
-        for (uint8_t opcode = 0; opcode <= 1; opcode++)
-            table[(opcode << 4) | 0x2] = &CPU::op_stax;
-        
-        // --- Arithmetic group (0x80 - 0x9F) ---
-        for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++) 
-            table[opcode] = &CPU::op_add;
-        for (uint8_t opcode = 0x88; opcode <= 0x8F; opcode++)
-            table[opcode] = &CPU::op_adc;
-        for (uint8_t opcode = 0x90; opcode <= 0x97; opcode++)
-            table[opcode] = &CPU::op_sub;
-        for (uint8_t opcode = 0x98; opcode <= 0x9F; opcode++)
-            table[opcode] = &CPU::op_sbb;
+    // ============================================================
+    // DATA MOVEMENT
+    // ============================================================
 
-        // --- Logical group (0xA0 - 0xBF) ---
-        for (uint8_t opcode = 0xA0; opcode <= 0xA7; opcode++)
-            table[opcode] = &CPU::op_ana;
-        for (uint8_t opcode = 0xA8; opcode <= 0xAF; opcode++)
-            table[opcode] = &CPU::op_xra;
-        for (uint8_t opcode = 0xB0; opcode <= 0xB7; opcode++)
-            table[opcode] = &CPU::op_ora;
-        for (uint8_t opcode = 0xB8; opcode <= 0xBF; opcode++)
-            table[opcode] = &CPU::op_cmp;
+    // MOV
+    for (uint8_t opcode = 0x40; opcode <= 0x7F; opcode++)
+        table[opcode] = &CPU::op_mov;
 
-        // --- INR (0x04 - 0x3C) / DCR (0x05 - 0x3D) groups ---
-        for (uint8_t opcode = 0x04; opcode <= 0x3C; opcode += 0x08)
-            table[opcode] = &CPU::op_inr;
-        for (uint8_t opcode = 0x05; opcode <= 0x3D; opcode += 0x08)
-            table[opcode] = &CPU::op_dcr;
+    table[0x76] = &CPU::op_hlt;       // override MOV M,M
 
-        // --- DAD group (0x09, 0x19, 0x29, 0x39) ---
-        for (uint8_t opcode = 0x09; opcode <= 0x39; opcode += 0x10)
-            table[opcode] = &CPU::op_dad;
+    // MVI
+    for (uint8_t opcode = 0x06; opcode <= 0x3E; opcode += 0x08)
+        table[opcode] = &CPU::op_mvi;
 
-        // --- Rotates, DAA, CMA, STC, CMC ---
-        table[0x07] = &CPU::op_rlc;
-        table[0x0F] = &CPU::op_rrc;
-        table[0x17] = &CPU::op_ral;
-        table[0x1F] = &CPU::op_rar;
-        table[0x27] = &CPU::op_daa;
-        table[0x2F] = &CPU::op_cma;
-        table[0x37] = &CPU::op_stc;
-        table[0x3F] = &CPU::op_cmc;
+    // LXI
+    for (uint8_t rp = 0; rp < 4; rp++)
+        table[(rp << 4) | 0x01] = &CPU::op_lxi;
 
-        // --- Branching group (0xC0 - 0xFF) ---
-        for (uint16_t opcode = 0xC0; opcode <= 0xFF; opcode++)
-            table[opcode] = &CPU::op_branching;
+    // LDA / STA
+    table[0x3A] = &CPU::op_lda;
+    table[0x32] = &CPU::op_sta;
 
-        // --- Control flow: conditional (one opcode per condition code) ---
-        for (uint16_t op = 0xC2; op <= 0xFA; op += 0x08) table[op] = &CPU::op_jcc;
-
-        // --- Control flow: unconditional ---
-        table[0xC3] = &CPU::op_jmp;
-        table[0xCB] = &CPU::op_jmp;     // undocumented alias for JMP
-
-        // --- Calls and returns ---
-        for (uint16_t op = 0xC4; op <= 0xFC; op += 0x08) table[op] = &CPU::op_ccc;
-        for (uint16_t op = 0xC0; op <= 0xF8; op += 0x08) table[op] = &CPU::op_rcc;
-        for (uint16_t op = 0xC7; op <= 0xFF; op += 0x08) table[op] = &CPU::op_rst;
-        table[0xCD] = &CPU::op_call;
-        table[0xC9] = &CPU::op_ret;
-        table[0xE9] = &CPU::op_pchl;
-
-        // --- Machine control (must follow the branching loop) ---
-        table[0xF3] = &CPU::op_di;
-        table[0xFB] = &CPU::op_ei;
-
-        // --- I/O (must follow the branching loop) ---
-        table[0xDB] = &CPU::op_in;
-        table[0xD3] = &CPU::op_out;
-
-        // --- Immediates (must follow the branching loop) ---
-        table[0xC6] = &CPU::op_adi;
-        table[0xCE] = &CPU::op_aci;
-        table[0xD6] = &CPU::op_sui;
-        table[0xDE] = &CPU::op_sbi;
-        table[0xE6] = &CPU::op_ani;
-        table[0xEE] = &CPU::op_xri;
-        table[0xF6] = &CPU::op_ori;
-        table[0xFE] = &CPU::op_cpi;
+    // LDAX / STAX
+    for (uint8_t rp = 0; rp < 2; rp++) {
+        table[(rp << 4) | 0x0A] = &CPU::op_ldax;
+        table[(rp << 4) | 0x02] = &CPU::op_stax;
     }
 
+    // LHLD / SHLD
+    table[0x2A] = &CPU::op_lhld;
+    table[0x22] = &CPU::op_shld;
+
+    // XCHG
+    table[0xEB] = &CPU::op_xchg;
+
+    // ============================================================
+    // REGISTER PAIR OPERATIONS
+    // ============================================================
+
+    // INX
+    for (uint8_t rp = 0; rp < 4; rp++)
+        table[(rp << 4) | 0x03] = &CPU::op_inx;
+
+    // DCX
+    for (uint8_t rp = 0; rp < 4; rp++)
+        table[(rp << 4) | 0x0B] = &CPU::op_dcx;
+
+    // DAD
+    for (uint8_t opcode = 0x09; opcode <= 0x39; opcode += 0x10)
+        table[opcode] = &CPU::op_dad;
+
+    // ============================================================
+    // STACK OPERATIONS
+    // ============================================================
+
+    for (uint8_t rp = 0xC; rp <= 0xF; rp++)
+        table[(rp << 4) | 0x05] = &CPU::op_push;
+
+    for (uint8_t rp = 0xC; rp <= 0xF; rp++)
+        table[(rp << 4) | 0x01] = &CPU::op_pop;
+
+    table[0xE3] = &CPU::op_xthl;
+    table[0xF9] = &CPU::op_sphl;
+
+    // ============================================================
+    // ARITHMETIC
+    // ============================================================
+
+    for (uint8_t opcode = 0x80; opcode <= 0x87; opcode++)
+        table[opcode] = &CPU::op_add;
+
+    for (uint8_t opcode = 0x88; opcode <= 0x8F; opcode++)
+        table[opcode] = &CPU::op_adc;
+
+    for (uint8_t opcode = 0x90; opcode <= 0x97; opcode++)
+        table[opcode] = &CPU::op_sub;
+
+    for (uint8_t opcode = 0x98; opcode <= 0x9F; opcode++)
+        table[opcode] = &CPU::op_sbb;
+
+    for (uint8_t opcode = 0x04; opcode <= 0x3C; opcode += 0x08)
+        table[opcode] = &CPU::op_inr;
+
+    for (uint8_t opcode = 0x05; opcode <= 0x3D; opcode += 0x08)
+        table[opcode] = &CPU::op_dcr;
+
+    table[0x27] = &CPU::op_daa;
+
+    // ============================================================
+    // LOGICAL
+    // ============================================================
+
+    for (uint8_t opcode = 0xA0; opcode <= 0xA7; opcode++)
+        table[opcode] = &CPU::op_ana;
+
+    for (uint8_t opcode = 0xA8; opcode <= 0xAF; opcode++)
+        table[opcode] = &CPU::op_xra;
+
+    for (uint8_t opcode = 0xB0; opcode <= 0xB7; opcode++)
+        table[opcode] = &CPU::op_ora;
+
+    for (uint8_t opcode = 0xB8; opcode <= 0xBF; opcode++)
+        table[opcode] = &CPU::op_cmp;
+
+    table[0x2F] = &CPU::op_cma;
+    table[0x37] = &CPU::op_stc;
+    table[0x3F] = &CPU::op_cmc;
+
+    // ============================================================
+    // IMMEDIATE ARITHMETIC / LOGICAL
+    // ============================================================
+
+    table[0xC6] = &CPU::op_adi;
+    table[0xCE] = &CPU::op_aci;
+    table[0xD6] = &CPU::op_sui;
+    table[0xDE] = &CPU::op_sbi;
+
+    table[0xE6] = &CPU::op_ani;
+    table[0xEE] = &CPU::op_xri;
+    table[0xF6] = &CPU::op_ori;
+    table[0xFE] = &CPU::op_cpi;
+
+    // ============================================================
+    // ROTATES
+    // ============================================================
+
+    table[0x07] = &CPU::op_rlc;
+    table[0x0F] = &CPU::op_rrc;
+    table[0x17] = &CPU::op_ral;
+    table[0x1F] = &CPU::op_rar;
+
+    // ============================================================
+    // JUMPS
+    // ============================================================
+
+    for (uint16_t op = 0xC2; op <= 0xFA; op += 0x08)
+        table[op] = &CPU::op_jcc;
+
+    table[0xC3] = &CPU::op_jmp;
+    table[0xCB] = &CPU::op_jmp;
+    table[0xE9] = &CPU::op_pchl;
+
+    // ============================================================
+    // CALLS / RETURNS / RESTARTS
+    // ============================================================
+
+    for (uint16_t op = 0xC4; op <= 0xFC; op += 0x08)
+        table[op] = &CPU::op_ccc;
+
+    for (uint16_t op = 0xC0; op <= 0xF8; op += 0x08)
+        table[op] = &CPU::op_rcc;
+
+    for (uint16_t op = 0xC7; op <= 0xFF; op += 0x08)
+        table[op] = &CPU::op_rst;
+
+    table[0xCD] = &CPU::op_call;
+    table[0xDD] = &CPU::op_call;
+    table[0xED] = &CPU::op_call;
+    table[0xFD] = &CPU::op_call;
+
+    table[0xC9] = &CPU::op_ret;
+    table[0xD9] = &CPU::op_ret;
+}
+
+
+// ===============================================================
+// CPU STEP FUNCTION
+// ===============================================================
  uint32_t CPU::step(Memory& memory) {
     if (ei_pending) {
         interrupts_enabled = true;
@@ -155,14 +245,14 @@ CPU::CPU()
     }
 
     uint8_t opcode = memory.read(pc);
-    pc++;
+    pc = (pc +1) & 0xFFFF;
     current_opcode = opcode;
     return (this->*table[current_opcode])(memory);
 }
 
-/*
-Helper functions for opcode handlers can be implemented here
-*/
+// ===============================================================
+// HELPER FUNCTIONS
+// ===============================================================
 
 // Fetch a byte
 uint8_t CPU::fetch_byte(Memory& memory) {
@@ -171,23 +261,37 @@ uint8_t CPU::fetch_byte(Memory& memory) {
 
 // Fetch a word (2 bytes)
 uint16_t CPU::fetch_word(Memory& memory) {
-    uint8_t lo = memory.read(pc++);
-    uint8_t hi = memory.read(pc++);
+    uint8_t lo = memory.read(pc);
+    pc = (pc + 1) & 0xFFFF;
+
+    uint8_t hi = memory.read(pc);
+    pc = (pc + 1) & 0xFFFF;
+
     return (hi << 8) | lo;
 }
 
 // Push a word (SP wraps at 0x0000)
-void CPU::push_word(Memory& memory, uint16_t value) {
+void CPU::push_word(Memory& memory, uint16_t value)
+{
     uint8_t hi = value >> 8;
     uint8_t lo = value & 0xFF;
-    memory.write(--sp, hi);
-    memory.write(--sp, lo);
+
+    sp = (sp - 1) & 0xFFFF;
+    memory.write(sp, hi);
+
+    sp = (sp - 1) & 0xFFFF;
+    memory.write(sp, lo);
 }
 
 // Pop a word (SP wraps at 0xFFFF)
-uint16_t CPU::pop_word(Memory& memory) {
-    uint8_t lo = memory.read(sp++);
-    uint8_t hi = memory.read(sp++);
+uint16_t CPU::pop_word(Memory& memory)
+{
+    uint8_t lo = memory.read(sp);
+    sp = (sp + 1) & 0xFFFF;
+
+    uint8_t hi = memory.read(sp);
+    sp = (sp + 1) & 0xFFFF;
+
     return (hi << 8) | lo;
 }
 
@@ -236,7 +340,7 @@ uint32_t CPU::op_lxi(Memory& memory) {
     return 10;
 }
 
-// MOV r1, r2 instruction handler
+// MOV instruction handler
 uint32_t CPU::op_mov(Memory& memory) {
     uint8_t src = current_opcode & 0x07; 
     uint8_t dst = (current_opcode >> 3) & 0x07;
@@ -244,7 +348,7 @@ uint32_t CPU::op_mov(Memory& memory) {
     uint8_t value = read_reg_or_memory(src, memory);
     write_reg_or_memory(dst, value, memory);
 
-    return 7;
+    return (src == 6 || dst == 6) ? 7 : 5;
 }
 
 // MVI instruction handler
@@ -276,7 +380,7 @@ uint32_t CPU::op_lhld(Memory& memory){
     uint16_t addr = fetch_word(memory);
     // Load L then H from memory
     l = memory.read(addr);
-    h = memory.read(addr + 1);
+    h = memory.read(addr + 1) & 0xFFFF;
     return 16;
 }
 
@@ -285,7 +389,7 @@ uint32_t CPU::op_shld(Memory& memory){
     uint16_t addr = fetch_word(memory);
     // Store L then H to memory
     memory.write(addr, l);
-    memory.write(addr + 1, h);
+    memory.write((addr + 1) & 0xFFFF, h);
     return 16;
 }
 
@@ -389,6 +493,82 @@ uint32_t CPU::op_dcx(Memory& memory) {
             sp--;
             break;
     }
+    return 5;
+}
+
+// PUSH instruction handler (Push B, D, H, PSW)
+uint32_t CPU::op_push(Memory& memory){
+    uint16_t value = 0;
+
+    switch (current_opcode) {
+        case 0xC5: // Push B
+            value = (b << 8) | c;
+            break;
+
+        case 0xD5: // Push D
+            value = (d << 8) | e;
+            break;
+
+        case 0xE5: // PUSH H
+            value = (h << 8) | l;
+            break;
+
+        case 0xF5: // PUSH PSW
+            value = (a << 8) | ((flags & 0xD7) | 0x02);
+            break;
+    }
+
+    push_word(memory, value);
+    return 11;
+
+}
+
+// POP instruction handler
+uint32_t CPU::op_pop(Memory& memory){
+    uint16_t value = pop_word(memory);
+
+    switch (current_opcode) {
+        case 0xC1: // POP B
+            b = (value >> 8) & 0xFF;
+            c = value & 0xFF;
+            break;
+
+        case 0xD1: // POP D
+            d = (value >> 8) & 0xFF;
+            e = value & 0xFF;
+            break;
+
+        case 0xE1: // POP H
+            h = (value >> 8) & 0xFF;
+            l = value & 0xFF;
+            break;
+
+        case 0xF1: // POP PSW
+            a = (value >> 8) & 0xFF;
+            flags = ((value & 0xFF) & 0xD7) | 0x02;
+            break;
+    }
+
+    return 10;
+}
+
+// XTHL instruction handler
+uint32_t CPU::op_xthl(Memory& memory){
+    uint8_t temp_l = l;
+    uint8_t temp_h = h;
+
+    l = memory.read(sp);
+    h = memory.read(sp + 1) & 0xFFFF;
+
+    memory.write(sp, temp_l);
+    memory.write(sp +1, temp_h);
+
+    return 18;
+}
+
+// SPHL instruction handler
+uint32_t CPU::op_sphl (Memory& memory) {
+    sp = (h << 8) | l;
     return 5;
 }
 
@@ -505,11 +685,6 @@ uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
     // The interrupting device supplies an RST n instruction (0xC7 + 8*n)
     current_opcode = 0xC7 | (rst_num << 3);
     return op_rst(memory);
-}
-
-// TODO(control flow): placeholders for Branching group (0xC0 - 0xFF)
-uint32_t CPU::op_branching(Memory&) {
-    return 4;
 }
 
 /*

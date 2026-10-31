@@ -56,9 +56,9 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      # Skip CPU test ROMs until the CPU can pass them. Remove "--label-exclude rom" once CPU is ready
+      # Run unit tests and test ROMs
       - name: Test
-        run: ctest --test-dir build --build-config Release --output-on-failure --label-exclude rom
+        run: ctest --test-dir build --build-config Release --output-on-failure
 
       # Copy game program (8080_linux, 8080_windows.exe, or 8080_macos) into distribution
       - name: Package the game

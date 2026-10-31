@@ -6,14 +6,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# Core emulator library (src/core and src/platform -- no SDL)
+# ===============================================================
+# CORE EMULATOR LIBRARY
+# ===============================================================
+# src/core and src/platform (no SDL)
 # Hand-list files for now. Later, use regex to gather all core/*.cpp and platform/*.cpp
 add_library(emu STATIC
     src/core/cpu.cpp
     src/core/memory.cpp
+    src/platform/cpm_test/cpm_machine.cpp
 )
 target_include_directories(emu PUBLIC src)
 
+# ===============================================================
+# SDL3
+# ===============================================================
 # Build SDL statically so there's no SDL3.dll / .so to hunt down at runtime
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
@@ -26,7 +33,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-# The main program (currently the SDL "Fake Invaders" test)
+# ===============================================================
+# MAIN PROGRAM
+# ===============================================================
+# Currently the SDL "Fake Invaders" test
 if(WIN32)
     set(OS_NAME windows)  # 8080_windows.exe
 elseif(APPLE)
@@ -44,7 +54,10 @@ target_link_libraries(8080 PRIVATE SDL3::SDL3)
 set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
 install(TARGETS 8080 DESTINATION .)
 
-# --- Unit tests (Catch2) ---
+# ===============================================================
+# UNIT TESTS
+# ===============================================================
+# Catch2 and CTest setup, used by all the test sections below
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -53,25 +66,41 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-# Run Catch2 unit tests
-file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/test_*.cpp)
-add_executable(unit_tests ${TEST_SOURCES})
-target_link_libraries(unit_tests PRIVATE emu Catch2::Catch2WithMain)
-
 enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
+
+# Unit tests (tests/test_*.cpp)
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/test_*.cpp)
+add_executable(unit_tests ${TEST_SOURCES})
+target_link_libraries(unit_tests PRIVATE emu Catch2::Catch2WithMain)
 catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
 
-# Spec-based CPU suite (tests/spec): gray-box tests of every
-# instruction, written from the Intel 8080 manual. Separate executable.
+# ===============================================================
+# CPU SPEC TESTS
+# ===============================================================
+# tests/spec: gray-box tests of every instruction, written from the
+# Intel 8080 manual. Separate executable.
 file(GLOB SPEC_TEST_SOURCES CONFIGURE_DEPENDS tests/spec/*.cpp)
 add_executable(cpu_spec_tests ${SPEC_TEST_SOURCES})
 target_include_directories(cpu_spec_tests PRIVATE tests/spec)
 target_link_libraries(cpu_spec_tests PRIVATE emu Catch2::Catch2WithMain)
 catch_discover_tests(cpu_spec_tests TEST_PREFIX "spec:")
 
-# --- CPU test ROMs ---
+# ===============================================================
+# CP/M TEST MACHINE AND CPU TEST ROMS
+# ===============================================================
+# Tests run in the order registered: unit, spec, then cpm: and cpu-test: below.
+
+# CP/M test machine program that runs the CPU test ROMs (CpmMachine itself is in emu)
+add_executable(cpm_test src/platform/cpm_test/main.cpp)
+target_link_libraries(cpm_test PRIVATE emu)
+
+# CP/M test machine unit tests (tests/cpm)
+add_executable(cpm_machine_tests tests/cpm/test_cpm_machine.cpp)
+target_link_libraries(cpm_machine_tests PRIVATE emu Catch2::Catch2WithMain)
+catch_discover_tests(cpm_machine_tests TEST_PREFIX "cpm:")
+
 # Download ROMs at configure time instead of committing them because two have
 # no clear license. Download ROMs from a specific superzazu/8080 commit, check
 # their SHA-256 values, and store them in build/test_roms/, which Git ignores.
@@ -96,38 +125,19 @@ while(ROM_HASHES)
     endif()
 endwhile()
 
-# CP/M test machine that runs the ROM tests.
-add_executable(cpm_test
-    src/platform/cpm_test/main.cpp
-    src/platform/cpm_test/cpm_machine.cpp
-)
-target_link_libraries(cpm_test PRIVATE emu)
+# CPU test ROMs, run by the CP/M test machine. Name prefix and label defined once here.
+set(CPU_TEST_PREFIX "cpu-test:")
+set(CPU_TEST_LABEL  "cpu-test")
+function(add_cpu_test rom pass_message timeout)
+    add_test(NAME ${CPU_TEST_PREFIX}${rom} COMMAND cpm_test ${ROMS}/${rom}.COM)
+    set_tests_properties(${CPU_TEST_PREFIX}${rom} PROPERTIES
+        PASS_REGULAR_EXPRESSION "${pass_message}"
+        FAIL_REGULAR_EXPRESSION "ERROR|FAIL"
+        LABELS ${CPU_TEST_LABEL}
+        TIMEOUT ${timeout})
+endfunction()
 
-# 8080PRE test
-add_test(NAME 8080PRE COMMAND cpm_test ${ROMS}/8080PRE.COM)
-set_tests_properties(8080PRE PROPERTIES
-    PASS_REGULAR_EXPRESSION "8080 Preliminary tests complete"
-    TIMEOUT 10) # Finishes instantly, 10-second timeout
-
-# TST8080 test
-add_test(NAME TST8080 COMMAND cpm_test ${ROMS}/TST8080.COM)
-set_tests_properties(TST8080 PROPERTIES
-    PASS_REGULAR_EXPRESSION "CPU IS OPERATIONAL"
-    TIMEOUT 10) # Finishes instantly, 10-second timeout
-
-# CPUTEST test
-add_test(NAME CPUTEST COMMAND cpm_test ${ROMS}/CPUTEST.COM)
-set_tests_properties(CPUTEST PROPERTIES
-    PASS_REGULAR_EXPRESSION "CPU TESTS OK"
-    TIMEOUT 60) # Finishes in seconds, one-minute timeout
-
-# 8080EXM test
-add_test(NAME 8080EXM COMMAND cpm_test ${ROMS}/8080EXM.COM)
-set_tests_properties(8080EXM PROPERTIES
-    PASS_REGULAR_EXPRESSION "Tests complete"
-    TIMEOUT 600) # Finishes in minutes, ten-minute timeout
-
-# Global test ROM properties
-set_tests_properties(8080PRE TST8080 CPUTEST 8080EXM PROPERTIES
-    FAIL_REGULAR_EXPRESSION "ERROR|FAIL"
-    LABELS rom)
+add_cpu_test(8080PRE "8080 Preliminary tests complete" 10)   # finishes instantly
+add_cpu_test(TST8080 "CPU IS OPERATIONAL"              10)   # finishes instantly
+add_cpu_test(CPUTEST "CPU TESTS OK"                    30)   # finishes in < 1 s
+add_cpu_test(8080EXM "Tests complete"                  60)   # finishes in ~30 s

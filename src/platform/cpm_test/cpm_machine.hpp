@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "core/cpu.hpp"
@@ -32,8 +33,9 @@ class CpmMachine {
 
 public:
     bool load(const std::vector<uint8_t>& program);
-    bool run();
+    bool run(uint64_t max_cycles = MAX_CYCLES);   // tests can pass a smaller limit
     uint64_t get_cycles() const { return cycles; }
+    const std::string& get_output() const { return output; }  // everything the program printed
 
 private:
     // Memory map addresses (see the map above)
@@ -49,14 +51,20 @@ private:
     static constexpr uint8_t PRINT_CHAR   = 2;  // print the character in E
     static constexpr uint8_t PRINT_STRING = 9;  // print the text at DE, up to '$'
 
+    // Max cycle count. Largest test ROM (8080EXM) runs for ~23B cycles.
+    // Set max cycle count to roughly double that amount (50B).
+    static constexpr uint64_t MAX_CYCLES = 50'000'000'000;
+
     // Data members
     CPU cpu;
     Memory memory;
     uint64_t cycles = 0;
+    std::string output;
 
-    // Helper functions for a BDOS call (always called as a pair)
+    // Helper functions for a BDOS call
     void print_output();
     void return_to_caller();
+    void write_output(char c);
 };
 
 #endif

@@ -18,6 +18,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::vector<uint8_t> program((std::istreambuf_iterator<char>(file)), {});
+    if (program.empty()) {
+        std::printf("ERROR: %s is empty.\n", argv[1]);
+        return 1;
+    }
 
     // Create CP/M test machine and load program into it
     CpmMachine machine;
@@ -30,7 +34,7 @@ int main(int argc, char* argv[]) {
     bool finished = machine.run();
     std::printf("\n");
     if (!finished) {
-        std::printf("ERROR: CPU halted before the program finished.\n");
+        std::printf("ERROR: CPU halted or exceeded max cycle count.\n");
         return 1;
     }
     std::printf("*** %llu cycles\n", (unsigned long long)machine.get_cycles());
