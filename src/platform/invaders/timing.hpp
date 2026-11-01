@@ -22,13 +22,13 @@ namespace invaders {
     inline constexpr uint32_t PIXELS_PER_LINE = 320;    // 256 visible + 64 hblank 
     inline constexpr uint32_t LINES_PER_FRAME = 262;    // 224 visible + 38 vblank
     inline constexpr uint32_t MID_SCREEN_LINE = 96;     // 1st interrupt: RST 1 raised
-    inline constexpr uint32_t VBLANK_LINE     = 224;    // 2nd interrupt: RST 2 raised
-    inline constexpr uint32_t VBLANK_LINES = LINES_PER_FRAME - VBLANK_LINE;
+    inline constexpr uint32_t VBLANK_START_LINE = 224;  // 2nd interrupt: RST 2 raised
+    inline constexpr uint32_t VBLANK_LINE_COUNT = LINES_PER_FRAME - VBLANK_START_LINE;
 
     // Cycles (128 cycles/line, 33,536 cycles/frame, 17,152 cycles to mid-screen)
     inline constexpr uint32_t CYCLES_PER_LINE  = PIXELS_PER_LINE * CPU_CLOCK_HZ / PIXEL_CLOCK_HZ;
     inline constexpr uint32_t CYCLES_PER_FRAME = CYCLES_PER_LINE * LINES_PER_FRAME;
-    inline constexpr uint32_t MID_SCREEN_CYCLE = (VBLANK_LINES + MID_SCREEN_LINE) * CYCLES_PER_LINE;
+    inline constexpr uint32_t MID_SCREEN_CYCLE = (VBLANK_LINE_COUNT + MID_SCREEN_LINE) * CYCLES_PER_LINE;
 
     // For frame pacing (about 59.54)
     inline constexpr double FRAMES_PER_SECOND = double(CPU_CLOCK_HZ) / CYCLES_PER_FRAME;

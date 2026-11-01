@@ -8,7 +8,7 @@ bool InterruptSchedule::add_cycles(uint32_t cycles) {
         pending_rst_ = 1;
         mid_screen_raised_ = true;
     }
-
+    // Frame hasn't finished yet, so stop early 
     if (frame_cycles_ < invaders::CYCLES_PER_FRAME)
         return false;
 

@@ -62,7 +62,7 @@ target_link_libraries(unit_tests PRIVATE emu Catch2::Catch2WithMain)
 enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(Catch)
-catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
+catch_discover_tests(unit_tests ADD_TAGS_AS_LABELS)   # registers each TEST_CASE with ctest; tags become ctest labels
 
 # Spec-based CPU suite (tests/spec): gray-box tests of every
 # instruction, written from the Intel 8080 manual. Separate executable.
