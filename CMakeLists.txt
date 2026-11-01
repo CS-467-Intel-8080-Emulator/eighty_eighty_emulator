@@ -14,6 +14,9 @@ include(FetchContent)
 add_library(emu STATIC
     src/core/cpu.cpp
     src/core/memory.cpp
+    src/platform/invaders/interrupt_schedule.cpp
+    src/platform/invaders/invaders_io.cpp
+    src/platform/invaders/shift_register.cpp
     src/platform/cpm_test/cpm_machine.cpp
 )
 target_include_directories(emu PUBLIC src)
@@ -74,7 +77,11 @@ include(Catch)
 file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/test_*.cpp)
 add_executable(unit_tests ${TEST_SOURCES})
 target_link_libraries(unit_tests PRIVATE emu Catch2::Catch2WithMain)
-catch_discover_tests(unit_tests)   # registers each TEST_CASE with ctest
+
+enable_testing()
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+include(Catch)
+catch_discover_tests(unit_tests ADD_TAGS_AS_LABELS)   # registers each TEST_CASE with ctest; tags become ctest labels
 
 # ===============================================================
 # CPU SPEC TESTS
