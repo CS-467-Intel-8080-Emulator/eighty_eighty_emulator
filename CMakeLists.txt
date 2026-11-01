@@ -12,6 +12,8 @@ add_library(emu STATIC
     src/core/cpu.cpp
     src/core/memory.cpp
     src/platform/invaders/interrupt_schedule.cpp
+    src/platform/invaders/invaders_io.cpp
+    src/platform/invaders/shift_register.cpp
 )
 target_include_directories(emu PUBLIC src)
 
