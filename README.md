@@ -28,9 +28,28 @@ cmake --build build --config Release --parallel
 ```
 
 # Test
-`--C Release` run optimized tests on Windows (ignored on Linux/macOS).
+Run all tests.
 ```sh
-ctest --test-dir build -C Release --output-on-failure
+ctest --test-dir build --build-config Release --output-on-failure
+```
+
+Optional: Run specific tests.
+```sh
+# Catch2 unit tests only
+ctest --test-dir build --build-config Release --output-on-failure --label-exclude cpu-test
+
+# CPU test ROMs only
+ctest --test-dir build --build-config Release --output-on-failure --label-regex cpu-test
+
+# Individual CPU test ROMs
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080PRE # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # < 1s
+ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # ~30s
+
+# Run test ROMs directly
+.\build\Release\cpm_test.exe build\test_roms\TST8080.COM # Windows
+./build/cpm_test build/test_roms/TST8080.COM # Linux/macOS
 ```
 
 # Run
@@ -65,7 +84,7 @@ unzip 8080_macos.zip
 xattr -d com.apple.quarantine 8080_macos
 ./8080_macos
 ```
-The `xattr -d ... line` clears the 'downloaded from the internet' flag that the browser adds.
+The `xattr -d ...` line clears the 'downloaded from the internet' flag that the browser adds.
 
 **Windows**:
 
@@ -73,8 +92,18 @@ Extract the executable from the zip file and double-click `8080_windows.exe`.
 
 **Troubleshooting**:
 * Windows: If a "Windows protected your PC" dialog opens when you run the executable, click **More info** and then **Run anyway**.
-* Linux/MacOS: If you get a "permission denied" error, add executable permissions to the file.
+* Linux/macOS: If you get a "permission denied" error, add executable permissions to the file.
   ```sh
   chmod +x 8080_linux
   chmod +x 8080_macos
   ```
+
+# CPU Test ROMs
+The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
+
+| ROM | Author | License |
+|---|---|---|
+| `8080PRE.COM` | Frank D. Cringle (1994), adapted for the 8080 by Ian Bartholomew (2009) | GPL v2 or later |
+| `8080EXM.COM` | Frank D. Cringle and Ian Bartholomew, with pass/fail CRCs added by Mike Douglas (2013) | GPL v2 or later |
+| `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
+| `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
