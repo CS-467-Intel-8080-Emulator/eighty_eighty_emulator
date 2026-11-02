@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "core/cpu.hpp"
-#include "core/memory.hpp"
+#include "core/flat_memory.hpp"
 
 /*
 A simple machine running CP/M (Control Program for Microcomputers), a 1970s
@@ -57,7 +57,7 @@ private:
 
     // Data members
     CPU cpu;
-    Memory memory;
+    FlatMemory memory;
     uint64_t cycles = 0;
     std::string output;
 

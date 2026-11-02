@@ -11,12 +11,14 @@ bool CpmMachine::load(const std::vector<uint8_t>& program) {
 
     // Start from a clean machine, in case this one already ran a program
     cpu = CPU();
-    memory = Memory();
+    memory = FlatMemory();
     cycles = 0;
     output.clear();
 
     // Copy program into memory
-    memory.load_rom(program.data(), program.size(), PROGRAM_START);
+    for (std::size_t i = 0; i < program.size(); i++) {
+        memory.write(static_cast<uint16_t>(PROGRAM_START + i), program[i]);
+    }
 
     // Start at the program's first instruction
     cpu.set_pc(PROGRAM_START);
@@ -79,7 +81,7 @@ void CpmMachine::print_output() {
 // Return to caller after the program's "CALL BDOS_ADDR" instruction (similar to RET)
 void CpmMachine::return_to_caller() {
     uint16_t sp = cpu.get_sp();
-    cpu.set_pc(memory.pop16(sp));   // pop16 moves sp up past the return address
+    cpu.set_pc(pop16(memory, sp));   // pop16 moves sp up past the return address
     cpu.set_sp(sp);
 }
 

@@ -13,7 +13,7 @@ include(FetchContent)
 # Hand-list files for now. Later, use regex to gather all core/*.cpp and platform/*.cpp
 add_library(emu STATIC
     src/core/cpu.cpp
-    src/core/memory.cpp
+    src/core/flat_memory.cpp
     src/platform/invaders/interrupt_schedule.cpp
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp

@@ -1,5 +1,5 @@
 #include "cpu.hpp"
-#include "memory.hpp"
+#include "memory_bus.hpp"
 #include "io_bus.hpp"
 #include "iostream"
 #include "iomanip"
@@ -7,7 +7,7 @@
 // ===============================================================
 // UNIMPLEMENTED OPCODE CATCHER
 // ===============================================================
-uint32_t CPU::op_unimplemented(Memory&) {
+uint32_t CPU::op_unimplemented(MemoryBus&) {
     std::cerr << "Unimplemented opcode: 0x"
               << std::hex << std::uppercase << (int)current_opcode
               << " at PC=0x" << pc << std::dec << std::endl;
@@ -234,7 +234,7 @@ CPU::CPU()
 // ===============================================================
 // CPU STEP FUNCTION
 // ===============================================================
- uint32_t CPU::step(Memory& memory) {
+ uint32_t CPU::step(MemoryBus& memory) {
     if (ei_pending) {
         interrupts_enabled = true;
         ei_pending = false;
@@ -255,12 +255,12 @@ CPU::CPU()
 // ===============================================================
 
 // Fetch a byte
-uint8_t CPU::fetch_byte(Memory& memory) {
+uint8_t CPU::fetch_byte(MemoryBus& memory) {
     return memory.read(pc++);
 }
 
 // Fetch a word (2 bytes)
-uint16_t CPU::fetch_word(Memory& memory) {
+uint16_t CPU::fetch_word(MemoryBus& memory) {
     uint8_t lo = memory.read(pc);
     pc = (pc + 1) & 0xFFFF;
 
@@ -271,7 +271,7 @@ uint16_t CPU::fetch_word(Memory& memory) {
 }
 
 // Push a word (SP wraps at 0x0000)
-void CPU::push_word(Memory& memory, uint16_t value)
+void CPU::push_word(MemoryBus& memory, uint16_t value)
 {
     uint8_t hi = value >> 8;
     uint8_t lo = value & 0xFF;
@@ -284,7 +284,7 @@ void CPU::push_word(Memory& memory, uint16_t value)
 }
 
 // Pop a word (SP wraps at 0xFFFF)
-uint16_t CPU::pop_word(Memory& memory)
+uint16_t CPU::pop_word(MemoryBus& memory)
 {
     uint8_t lo = memory.read(sp);
     sp = (sp + 1) & 0xFFFF;
@@ -312,12 +312,12 @@ bool CPU::check_condition(uint8_t opcode) const {
 }
 
 // NOP instruction handler
-uint32_t CPU::op_nop(Memory& memory) {
+uint32_t CPU::op_nop(MemoryBus& memory) {
     return 4;
 }
 
 // LXI instruction handler
-uint32_t CPU::op_lxi(Memory& memory) {
+uint32_t CPU::op_lxi(MemoryBus& memory) {
     uint16_t value = fetch_word(memory);
     // Determine which register pair to load based on the opcode
     switch (current_opcode) {
@@ -341,7 +341,7 @@ uint32_t CPU::op_lxi(Memory& memory) {
 }
 
 // MOV instruction handler
-uint32_t CPU::op_mov(Memory& memory) {
+uint32_t CPU::op_mov(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07; 
     uint8_t dst = (current_opcode >> 3) & 0x07;
 
@@ -352,7 +352,7 @@ uint32_t CPU::op_mov(Memory& memory) {
 }
 
 // MVI instruction handler
-uint32_t CPU::op_mvi(Memory& memory) {
+uint32_t CPU::op_mvi(MemoryBus& memory) {
     uint8_t dst = (current_opcode >> 3) & 0x07;
     uint8_t value = fetch_byte(memory);
     write_reg_or_memory(dst, value, memory);
@@ -362,21 +362,21 @@ uint32_t CPU::op_mvi(Memory& memory) {
 }
 
 // LDA instruction handler
-uint32_t CPU::op_lda(Memory& memory) {
+uint32_t CPU::op_lda(MemoryBus& memory) {
     uint16_t addr = fetch_word(memory);
     a = memory.read(addr);
     return 13;
 }
 
 // STA instruction handler
-uint32_t CPU::op_sta(Memory& memory) {
+uint32_t CPU::op_sta(MemoryBus& memory) {
     uint16_t addr = fetch_word(memory);
     memory.write(addr, a);
     return 13;
 }
 
 // LHLD instruction handler
-uint32_t CPU::op_lhld(Memory& memory){
+uint32_t CPU::op_lhld(MemoryBus& memory){
     uint16_t addr = fetch_word(memory);
     // Load L then H from memory
     l = memory.read(addr);
@@ -385,7 +385,7 @@ uint32_t CPU::op_lhld(Memory& memory){
 }
 
 // SHLD instruction handler
-uint32_t CPU::op_shld(Memory& memory){
+uint32_t CPU::op_shld(MemoryBus& memory){
     uint16_t addr = fetch_word(memory);
     // Store L then H to memory
     memory.write(addr, l);
@@ -394,7 +394,7 @@ uint32_t CPU::op_shld(Memory& memory){
 }
 
 // LDAX instruction handler
-uint32_t CPU::op_ldax(Memory& memory) {
+uint32_t CPU::op_ldax(MemoryBus& memory) {
     uint16_t adder;
     if (current_opcode == 0x0A) {
         adder = (b <<8) | c;
@@ -406,7 +406,7 @@ uint32_t CPU::op_ldax(Memory& memory) {
 }
 
 // STAX B & D instruction handler
-uint32_t CPU::op_stax(Memory& memory) {
+uint32_t CPU::op_stax(MemoryBus& memory) {
     uint16_t adder;
     // 0x02 is STAX B, 0x12 is STAX D
     if (current_opcode == 0x02) {
@@ -419,14 +419,14 @@ uint32_t CPU::op_stax(Memory& memory) {
 }
 
 // XCHG instruction handler
-uint32_t CPU::op_xchg(Memory& memory) {
+uint32_t CPU::op_xchg(MemoryBus& memory) {
     std::swap(d, h);
     std::swap(e, l);
     return 4;
 }
 
 // INX instruction handler
-uint32_t CPU::op_inx(Memory& memory) {
+uint32_t CPU::op_inx(MemoryBus& memory) {
     // Determine which register pair to increment based on the opcode
     switch (current_opcode) {
         case 0x03: // INX B
@@ -463,7 +463,7 @@ uint32_t CPU::op_inx(Memory& memory) {
 }
 
 // DCX instruction handler
-uint32_t CPU::op_dcx(Memory& memory) {
+uint32_t CPU::op_dcx(MemoryBus& memory) {
     switch (current_opcode) {
         case 0x0B: // DCX B
             {
@@ -497,7 +497,7 @@ uint32_t CPU::op_dcx(Memory& memory) {
 }
 
 // PUSH instruction handler (Push B, D, H, PSW)
-uint32_t CPU::op_push(Memory& memory){
+uint32_t CPU::op_push(MemoryBus& memory){
     uint16_t value = 0;
 
     switch (current_opcode) {
@@ -524,7 +524,7 @@ uint32_t CPU::op_push(Memory& memory){
 }
 
 // POP instruction handler
-uint32_t CPU::op_pop(Memory& memory){
+uint32_t CPU::op_pop(MemoryBus& memory){
     uint16_t value = pop_word(memory);
 
     switch (current_opcode) {
@@ -553,7 +553,7 @@ uint32_t CPU::op_pop(Memory& memory){
 }
 
 // XTHL instruction handler
-uint32_t CPU::op_xthl(Memory& memory){
+uint32_t CPU::op_xthl(MemoryBus& memory){
     uint8_t temp_l = l;
     uint8_t temp_h = h;
 
@@ -567,19 +567,19 @@ uint32_t CPU::op_xthl(Memory& memory){
 }
 
 // SPHL instruction handler
-uint32_t CPU::op_sphl (Memory& memory) {
+uint32_t CPU::op_sphl (MemoryBus& memory) {
     sp = (h << 8) | l;
     return 5;
 }
 
 // JMP addr instruction handler (0xC3)
-uint32_t CPU::op_jmp(Memory& memory) {
+uint32_t CPU::op_jmp(MemoryBus& memory) {
     pc = fetch_word(memory);
     return 10;
 }
 
 // Jcc addr instruction handler (0xC2 + 8*cc: JNZ JZ JNC JC JPO JPE JP JM)
-uint32_t CPU::op_jcc(Memory& memory) {
+uint32_t CPU::op_jcc(MemoryBus& memory) {
     uint16_t addr = fetch_word(memory);
     if (check_condition(current_opcode)) {
         pc = addr;
@@ -588,7 +588,7 @@ uint32_t CPU::op_jcc(Memory& memory) {
 }
 
 // CALL addr instruction handler (0xCD)
-uint32_t CPU::op_call(Memory& memory) {
+uint32_t CPU::op_call(MemoryBus& memory) {
     uint16_t addr = fetch_word(memory);
     push_word(memory, pc);
     pc = addr;
@@ -596,7 +596,7 @@ uint32_t CPU::op_call(Memory& memory) {
 }
 
 // Ccc addr instruction handler (0xC4 + 8*cc: CNZ CZ CNC CC CPO CPE CP CM)
-uint32_t CPU::op_ccc(Memory& memory) {
+uint32_t CPU::op_ccc(MemoryBus& memory) {
     uint16_t addr = fetch_word(memory);
     if (check_condition(current_opcode)) {
         push_word(memory, pc);
@@ -607,13 +607,13 @@ uint32_t CPU::op_ccc(Memory& memory) {
 }
 
 // RET instruction handler (0xC9)
-uint32_t CPU::op_ret(Memory& memory) {
+uint32_t CPU::op_ret(MemoryBus& memory) {
     pc = pop_word(memory);
     return 10;
 }
 
 // Rcc instruction handler (0xC0 + 8*cc: RNZ RZ RNC RC RPO RPE RP RM)
-uint32_t CPU::op_rcc(Memory& memory) {
+uint32_t CPU::op_rcc(MemoryBus& memory) {
     if (check_condition(current_opcode)) {
         pc = pop_word(memory);
         return 11;
@@ -622,32 +622,32 @@ uint32_t CPU::op_rcc(Memory& memory) {
 }
 
 // RST n instruction handler (0xC7 + 8*n): call to n*8
-uint32_t CPU::op_rst(Memory& memory) {
+uint32_t CPU::op_rst(MemoryBus& memory) {
     push_word(memory, pc);
     pc = current_opcode & 0x38;
     return 11;
 }
 
 // PCHL instruction handler (0xE9): PC = HL
-uint32_t CPU::op_pchl(Memory&) {
+uint32_t CPU::op_pchl(MemoryBus&) {
     pc = (h << 8) | l;
     return 5;
 }
 
 // HLT instruction handler (0x76)
-uint32_t CPU::op_hlt(Memory&) {
+uint32_t CPU::op_hlt(MemoryBus&) {
     halted = true;
     return 7;
 }
 
 // EI instruction handler (0xFB)
-uint32_t CPU::op_ei(Memory&) {
+uint32_t CPU::op_ei(MemoryBus&) {
     ei_pending = true;
     return 4;
 }
 
 // DI instruction handler (0xF3)
-uint32_t CPU::op_di(Memory&) {
+uint32_t CPU::op_di(MemoryBus&) {
     interrupts_enabled = false;
     ei_pending = false;
     return 4;
@@ -659,14 +659,14 @@ void CPU::set_io(IOBus* bus) {
 }
 
 // IN port instruction handler (0xDB)
-uint32_t CPU::op_in(Memory& memory) {
+uint32_t CPU::op_in(MemoryBus& memory) {
     uint8_t port = fetch_byte(memory);
     a = io ? io->in(port) : 0xFF;
     return 10;
 }
 
 // OUT port instruction handler (0xD3)
-uint32_t CPU::op_out(Memory& memory) {
+uint32_t CPU::op_out(MemoryBus& memory) {
     uint8_t port = fetch_byte(memory);
     if (io) {
         io->out(port, a);
@@ -675,7 +675,7 @@ uint32_t CPU::op_out(Memory& memory) {
 }
 
 // Hardware interrupt: ignored unless enabled, then runs RST rst_num
-uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
+uint32_t CPU::interrupt(MemoryBus& memory, uint8_t rst_num) {
     if (!interrupts_enabled) {
         return 0;
     }
@@ -690,7 +690,7 @@ uint32_t CPU::interrupt(Memory& memory, uint8_t rst_num) {
 /*
 Register and memory helper functions
 */
-uint8_t CPU::read_reg_or_memory(uint8_t index, Memory& memory) {
+uint8_t CPU::read_reg_or_memory(uint8_t index, MemoryBus& memory) {
     switch (index) {
         case 0: return b;
         case 1: return c;
@@ -704,7 +704,7 @@ uint8_t CPU::read_reg_or_memory(uint8_t index, Memory& memory) {
     return 0;
 }
 
-void CPU::write_reg_or_memory(uint8_t index, uint8_t value, Memory& memory) {
+void CPU::write_reg_or_memory(uint8_t index, uint8_t value, MemoryBus& memory) {
     switch (index) {
         case 0: b = value; break;
         case 1: c = value; break;
@@ -816,63 +816,63 @@ Arithmetic and logic instruction handlers
 */
 
 // ADD r instruction handler
-uint32_t CPU::op_add(Memory& memory) {
+uint32_t CPU::op_add(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_add(read_reg_or_memory(src, memory), 0);
     return (src == 6) ? 7 : 4;
 }
 
 // ADC r instruction handler
-uint32_t CPU::op_adc(Memory& memory) {
+uint32_t CPU::op_adc(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_add(read_reg_or_memory(src, memory), get_flag(FLAG_CARRY) ? 1 : 0);
     return (src == 6) ? 7 : 4;
 }
 
 // SUB r instruction handler
-uint32_t CPU::op_sub(Memory& memory) {
+uint32_t CPU::op_sub(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_sub(read_reg_or_memory(src, memory), 0, true);
     return (src == 6) ? 7 : 4;
 }
 
 // SBB r instruction handler
-uint32_t CPU::op_sbb(Memory& memory) {
+uint32_t CPU::op_sbb(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_sub(read_reg_or_memory(src, memory), get_flag(FLAG_CARRY) ? 1 : 0, true);
     return (src == 6) ? 7 : 4;
 }
 
 // ANA r instruction handler
-uint32_t CPU::op_ana(Memory& memory) {
+uint32_t CPU::op_ana(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_and(read_reg_or_memory(src, memory));
     return (src == 6) ? 7 : 4;
 }
 
 // XRA r instruction handler
-uint32_t CPU::op_xra(Memory& memory) {
+uint32_t CPU::op_xra(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_xor(read_reg_or_memory(src, memory));
     return (src == 6) ? 7 : 4;
 }
 
 // ORA r instruction handler
-uint32_t CPU::op_ora(Memory& memory) {
+uint32_t CPU::op_ora(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_or(read_reg_or_memory(src, memory));
     return (src == 6) ? 7 : 4;
 }
 
 // CMP r instruction handler
-uint32_t CPU::op_cmp(Memory& memory) {
+uint32_t CPU::op_cmp(MemoryBus& memory) {
     uint8_t src = current_opcode & 0x07;
     alu_sub(read_reg_or_memory(src, memory), 0, false);
     return (src == 6) ? 7 : 4;
 }
 
 // INR r instruction handler (CY unaffected)
-uint32_t CPU::op_inr(Memory& memory) {
+uint32_t CPU::op_inr(MemoryBus& memory) {
     uint8_t dst = (current_opcode >> 3) & 0x07;
     uint8_t value = read_reg_or_memory(dst, memory);
     uint8_t result = value + 1;
@@ -885,7 +885,7 @@ uint32_t CPU::op_inr(Memory& memory) {
 }
 
 // DCR r instruction handler (CY unaffected)
-uint32_t CPU::op_dcr(Memory& memory) {
+uint32_t CPU::op_dcr(MemoryBus& memory) {
     uint8_t dst = (current_opcode >> 3) & 0x07;
     uint8_t value = read_reg_or_memory(dst, memory);
     uint8_t result = value - 1;
@@ -898,7 +898,7 @@ uint32_t CPU::op_dcr(Memory& memory) {
 }
 
 // DAD rp instruction handler (CY only)
-uint32_t CPU::op_dad(Memory&) {
+uint32_t CPU::op_dad(MemoryBus&) {
     uint16_t hl = (h << 8) | l;
     uint16_t value = 0;
 
@@ -918,7 +918,7 @@ uint32_t CPU::op_dad(Memory&) {
 }
 
 // DAA instruction handler
-uint32_t CPU::op_daa(Memory&) {
+uint32_t CPU::op_daa(MemoryBus&) {
     uint8_t correction = 0;
     bool carry = get_flag(FLAG_CARRY);
     uint8_t low = a & 0x0F;
@@ -938,55 +938,55 @@ uint32_t CPU::op_daa(Memory&) {
 }
 
 // ADI instruction handler
-uint32_t CPU::op_adi(Memory& memory) {
+uint32_t CPU::op_adi(MemoryBus& memory) {
     alu_add(fetch_byte(memory), 0);
     return 7;
 }
 
 // ACI instruction handler
-uint32_t CPU::op_aci(Memory& memory) {
+uint32_t CPU::op_aci(MemoryBus& memory) {
     alu_add(fetch_byte(memory), get_flag(FLAG_CARRY) ? 1 : 0);
     return 7;
 }
 
 // SUI instruction handler
-uint32_t CPU::op_sui(Memory& memory) {
+uint32_t CPU::op_sui(MemoryBus& memory) {
     alu_sub(fetch_byte(memory), 0, true);
     return 7;
 }
 
 // SBI instruction handler
-uint32_t CPU::op_sbi(Memory& memory) {
+uint32_t CPU::op_sbi(MemoryBus& memory) {
     alu_sub(fetch_byte(memory), get_flag(FLAG_CARRY) ? 1 : 0, true);
     return 7;
 }
 
 // ANI instruction handler
-uint32_t CPU::op_ani(Memory& memory) {
+uint32_t CPU::op_ani(MemoryBus& memory) {
     alu_and(fetch_byte(memory));
     return 7;
 }
 
 // XRI instruction handler
-uint32_t CPU::op_xri(Memory& memory) {
+uint32_t CPU::op_xri(MemoryBus& memory) {
     alu_xor(fetch_byte(memory));
     return 7;
 }
 
 // ORI instruction handler
-uint32_t CPU::op_ori(Memory& memory) {
+uint32_t CPU::op_ori(MemoryBus& memory) {
     alu_or(fetch_byte(memory));
     return 7;
 }
 
 // CPI instruction handler
-uint32_t CPU::op_cpi(Memory& memory) {
+uint32_t CPU::op_cpi(MemoryBus& memory) {
     alu_sub(fetch_byte(memory), 0, false);
     return 7;
 }
 
 // RLC instruction handler
-uint32_t CPU::op_rlc(Memory&) {
+uint32_t CPU::op_rlc(MemoryBus&) {
     bool bit7 = (a & 0x80) != 0;
     a = (a << 1) | (bit7 ? 1 : 0);
     set_flag(FLAG_CARRY, bit7);
@@ -994,7 +994,7 @@ uint32_t CPU::op_rlc(Memory&) {
 }
 
 // RRC instruction handler
-uint32_t CPU::op_rrc(Memory&) {
+uint32_t CPU::op_rrc(MemoryBus&) {
     bool bit0 = (a & 0x01) != 0;
     a = (a >> 1) | (bit0 ? 0x80 : 0);
     set_flag(FLAG_CARRY, bit0);
@@ -1002,7 +1002,7 @@ uint32_t CPU::op_rrc(Memory&) {
 }
 
 // RAL instruction handler
-uint32_t CPU::op_ral(Memory&) {
+uint32_t CPU::op_ral(MemoryBus&) {
     bool bit7 = (a & 0x80) != 0;
     a = (a << 1) | (get_flag(FLAG_CARRY) ? 1 : 0);
     set_flag(FLAG_CARRY, bit7);
@@ -1010,7 +1010,7 @@ uint32_t CPU::op_ral(Memory&) {
 }
 
 // RAR instruction handler
-uint32_t CPU::op_rar(Memory&) {
+uint32_t CPU::op_rar(MemoryBus&) {
     bool bit0 = (a & 0x01) != 0;
     a = (a >> 1) | (get_flag(FLAG_CARRY) ? 0x80 : 0);
     set_flag(FLAG_CARRY, bit0);
@@ -1018,19 +1018,19 @@ uint32_t CPU::op_rar(Memory&) {
 }
 
 // CMA instruction handler
-uint32_t CPU::op_cma(Memory&) {
+uint32_t CPU::op_cma(MemoryBus&) {
     a = ~a;
     return 4;
 }
 
 // STC instruction handler
-uint32_t CPU::op_stc(Memory&) {
+uint32_t CPU::op_stc(MemoryBus&) {
     set_flag(FLAG_CARRY, true);
     return 4;
 }
 
 // CMC instruction handler
-uint32_t CPU::op_cmc(Memory&) {
+uint32_t CPU::op_cmc(MemoryBus&) {
     set_flag(FLAG_CARRY, !get_flag(FLAG_CARRY));
     return 4;
 }
