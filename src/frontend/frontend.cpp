@@ -1,4 +1,4 @@
-#include "src/frontend/frontend.h"
+#include "frontend.hpp"
 
 #include <SDL3/SDL.h>
 
