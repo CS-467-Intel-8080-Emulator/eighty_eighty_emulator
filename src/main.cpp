@@ -1,4 +1,4 @@
-#include "src/frontend/frontend.h"
+#include "src/frontend/frontend.hpp"
 #include "src/platform/fake_invaders/machine.h"
 
 #include <SDL3/SDL.h>

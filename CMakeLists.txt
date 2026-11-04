@@ -18,6 +18,8 @@ add_library(emu STATIC
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp
     src/platform/cpm_test/cpm_machine.cpp
+    src/platform/invaders/video.cpp
+
 )
 target_include_directories(emu PUBLIC src)
 
