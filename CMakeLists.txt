@@ -14,6 +14,7 @@ include(FetchContent)
 add_library(emu STATIC
     src/core/cpu.cpp
     src/core/flat_memory.cpp
+    src/rom/rom_loader.cpp
     src/platform/invaders/interrupt_schedule.cpp
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp
