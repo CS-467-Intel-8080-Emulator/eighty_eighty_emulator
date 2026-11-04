@@ -4,11 +4,8 @@ InvadersMachine::InvadersMachine() {
     cpu_.set_io(&io_);
 }
 
-// TODO: Update with proper rom loading using Space Invaders memory
-void InvadersMachine::load_rom(uint16_t address, const std::vector<uint8_t>& bytes) {
-    for (std::size_t i = 0; i < bytes.size(); i++) {
-        memory_.write(static_cast<uint16_t>(address + i), bytes[i]);
-    }
+bool InvadersMachine::load_rom(const std::vector<uint8_t>& bytes, uint16_t offset) {
+    return memory_.load_rom(bytes, offset);
 }
 
 void InvadersMachine::run_frame() {
