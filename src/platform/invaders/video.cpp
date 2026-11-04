@@ -30,10 +30,9 @@ void Video::update(const MemoryBus& memory)
 
             const int video_y = video_y_base + bit;
 
-            // No rotation yet 
-            // May need a rotation or mirror after testing
+            // Rotated coordinates to match the original Space Invaders orientation
             const int screen_x = video_x;
-            const int screen_y = video_y;
+            const int screen_y = SCREEN_HEIGHT - 1 - video_y;
 
             set_pixel(screen_x, screen_y, pixel);
         }
