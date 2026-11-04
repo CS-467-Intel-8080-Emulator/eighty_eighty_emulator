@@ -17,6 +17,7 @@ add_library(emu STATIC
     src/platform/invaders/interrupt_schedule.cpp
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp
+    src/platform/invaders/invaders_machine.cpp
     src/platform/cpm_test/cpm_machine.cpp
     src/platform/invaders/video.cpp
 
