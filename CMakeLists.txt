@@ -9,17 +9,16 @@ include(FetchContent)
 # ===============================================================
 # CORE EMULATOR LIBRARY
 # ===============================================================
-# src/core and src/platform (no SDL)
-# Hand-list files for now. Later, use regex to gather all core/*.cpp and platform/*.cpp
-add_library(emu STATIC
-    src/core/cpu.cpp
-    src/core/flat_memory.cpp
-    src/rom/rom_loader.cpp
-    src/platform/invaders/interrupt_schedule.cpp
-    src/platform/invaders/invaders_io.cpp
-    src/platform/invaders/shift_register.cpp
-    src/platform/cpm_test/cpm_machine.cpp
+# src/core, src/rom, and src/platform (no SDL or main.cpp).
+# New .cpp files are picked up automatically on next build.
+file(GLOB_RECURSE EMU_SOURCES CONFIGURE_DEPENDS
+    src/core/*.cpp
+    src/rom/*.cpp
+    src/platform/*.cpp
 )
+list(FILTER EMU_SOURCES EXCLUDE REGEX "main\\.cpp$")
+list(FILTER EMU_SOURCES EXCLUDE REGEX "/fake_invaders/") # TODO: Remove when platform/fake_invaders is deleted
+add_library(emu STATIC ${EMU_SOURCES})
 target_include_directories(emu PUBLIC src)
 
 # ===============================================================
