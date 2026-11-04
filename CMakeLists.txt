@@ -17,6 +17,7 @@ add_library(emu STATIC
     src/platform/invaders/interrupt_schedule.cpp
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp
+    src/platform/invaders/invaders_memory.cpp
     src/platform/invaders/invaders_machine.cpp
     src/platform/cpm_test/cpm_machine.cpp
     src/platform/invaders/video.cpp
@@ -42,7 +43,6 @@ FetchContent_MakeAvailable(SDL3)
 # ===============================================================
 # MAIN PROGRAM
 # ===============================================================
-# Currently the SDL "Fake Invaders" test
 if(WIN32)
     set(OS_NAME windows)  # 8080_windows.exe
 elseif(APPLE)
@@ -53,10 +53,9 @@ endif()
 add_executable(8080
     src/main.cpp
     src/frontend/frontend.cpp
-    src/platform/fake_invaders/machine.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(8080 PRIVATE SDL3::SDL3)
+target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
 set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
 install(TARGETS 8080 DESTINATION .)
 
