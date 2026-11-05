@@ -6,4 +6,4 @@ Add the 2 KB Space Invaders ROM files into this folder, named as follows:
 - invaders.h
 
 Space Invaders is © 1978 Taito. To play Space Invaders with this emulator,
-you must your own legal copy of the ROM. This repository does not include it.
+you must have your own legal copy of the ROM. This repository does not include it.
