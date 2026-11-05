@@ -57,13 +57,13 @@ These commands assume you added the Space Invaders ROM files to the
 `assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
-.\build\Release\8080_windows.exe assets\roms\invaders
+.\build\Release\8080_windows.exe
 
 # macOS
-./build/8080_macos assets/roms/invaders
+./build/8080_macos
 
 # Linux
-./build/8080_linux assets/roms/invaders
+./build/8080_linux
 ```
 
 # Download and Run Generated Builds
