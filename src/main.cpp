@@ -1,35 +1,27 @@
 #include "src/frontend/frontend.hpp"
 #include "platform/invaders/invaders_machine.hpp"
+#include "platform/invaders/invaders_rom.hpp"
+#include "rom/rom_loader.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include <exception>
-#include <fstream>
-#include <iterator>
-#include <vector>
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        SDL_Log("Usage: %s ROM_FILE, ROM_FILE, ...", argv[0]);
-        return 1;
-    }
+    const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
 
     try {
         InvadersMachine machine;
 
-        // Load each ROM file right after the previous one
-        // Borrowed file loading pattern from CP/M main
-        uint16_t offset = 0;
-        for (int i = 1; i < argc; i++) {
-            std::ifstream file(argv[i], std::ios::binary);
-            std::vector<uint8_t> rom((std::istreambuf_iterator<char>(file)), {});
-            if (rom.empty() || !machine.load_rom(rom, offset)) {
-                SDL_Log("Unable to load ROM %s", argv[i]);
-                return 1;
-            }
-            offset += rom.size();
+        // Load each ROM file at its address from INVADERS_ROM_FILES
+        RomLoadResult rom = load_rom_files(folder, INVADERS_ROM_FILES);
+        if (!rom.ok()) {
+            SDL_Log("%s", rom.error.c_str());
+            return 1;
         }
+        for (size_t i = 0; i < rom.data.size(); i++)
+            machine.load_rom(rom.data[i], INVADERS_ROM_FILES[i].address);
 
         Frontend frontend(
             machine.title(),
