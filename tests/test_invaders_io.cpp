@@ -1,6 +1,9 @@
 // Unit tests for the Space Invaders port map, alone and driven by the CPU.
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
+#include <vector>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -28,6 +31,24 @@ TEST_CASE("Sound and watchdog writes leave the shift register alone", "[invaders
     io.out(4, 0x34);
     io.out(port, 0xFF);
     CHECK(io.in(3) == 0x34);
+}
+
+TEST_CASE("OUT 3 and OUT 5 reach the sound board", "[invaders][io]") {
+    uint8_t port = GENERATE(3, 5);
+    CAPTURE((int)port);
+
+    InvadersIO io;
+    io.sound().set_sample(InvadersSound::SHOT, std::vector<float>(2400, 0.5f));
+    io.sound().set_sample(InvadersSound::FLEET_1, std::vector<float>(2400, 0.5f));
+    io.out(3, 0x20);                        // amplifier on
+    io.out(port, port == 3 ? 0x22 : 0x01);  // shot, or fleet note 1
+
+    float out[2400];
+    io.sound().render(out, 2400);
+    float max = 0.0f;
+    for (float s : out)
+        max = std::max(max, std::abs(s));
+    CHECK(max > 0.01f);
 }
 
 TEST_CASE("Ports without a device read 0x00", "[invaders][io]") {
