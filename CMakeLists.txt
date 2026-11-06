@@ -54,6 +54,7 @@ endif()
 add_executable(8080
     src/main.cpp
     src/frontend/frontend.cpp
+    src/frontend/audio.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
