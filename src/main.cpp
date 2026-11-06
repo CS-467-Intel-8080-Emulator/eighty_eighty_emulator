@@ -1,3 +1,4 @@
+#include "src/frontend/audio.hpp"
 #include "src/frontend/frontend.hpp"
 #include "platform/invaders/invaders_machine.hpp"
 
@@ -7,6 +8,8 @@
 #include <exception>
 #include <fstream>
 #include <iterator>
+#include <string>
+#include <utility>
 #include <vector>
 
 int main(int argc, char* argv[]) {
@@ -38,6 +41,23 @@ int main(int argc, char* argv[]) {
             0.0, // TODO: Remove rotation; let video layer handle it
             2
         );
+
+        // Missing sound files stay silent
+        const std::string sound_dir = "assets/sounds/invaders/";
+        int samples_loaded = 0;
+        for (int i = 0; i < InvadersSound::SOUND_COUNT; i++) {
+            const std::string path = sound_dir + std::to_string(i) + ".wav";
+            std::vector<float> samples = Audio::load_wav(path.c_str(), machine.audio_sample_rate());
+            samples_loaded += !samples.empty();
+            machine.sound().set_sample(InvadersSound::Sound(i), std::move(samples));
+        }
+        SDL_Log("Loaded %d of %d sound samples from %s",
+                samples_loaded, int(InvadersSound::SOUND_COUNT), sound_dir.c_str());
+
+        // Must be destroyed before the frontend calls SDL_Quit
+        Audio audio(machine.audio_sample_rate(), [&machine](float* out, int count) {
+            machine.render_audio(out, count);
+        });
 
         while (frontend.handle_events()) {
             machine.run_frame();

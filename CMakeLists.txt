@@ -17,6 +17,7 @@ add_library(emu STATIC
     src/platform/invaders/interrupt_schedule.cpp
     src/platform/invaders/invaders_io.cpp
     src/platform/invaders/shift_register.cpp
+    src/platform/invaders/sound.cpp
     src/platform/invaders/invaders_memory.cpp
     src/platform/invaders/invaders_machine.cpp
     src/platform/cpm_test/cpm_machine.cpp
@@ -53,6 +54,7 @@ endif()
 add_executable(8080
     src/main.cpp
     src/frontend/frontend.cpp
+    src/frontend/audio.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3)

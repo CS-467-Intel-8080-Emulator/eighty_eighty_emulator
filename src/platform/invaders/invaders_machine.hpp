@@ -28,6 +28,10 @@ public:
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
 
+    int audio_sample_rate() const override { return InvadersSound::SAMPLE_RATE; }
+    void render_audio(float* out, int count) override { io_.sound().render(out, count); }
+    InvadersSound& sound() { return io_.sound(); }
+
 private:
     CPU cpu_;
     InvadersMemory memory_;

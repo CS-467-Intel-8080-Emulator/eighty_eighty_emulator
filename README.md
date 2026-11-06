@@ -64,6 +64,8 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 ./build/8080_linux
 ```
 
+For sound, put the Space Invaders WAV files in `assets/sounds/invaders`, relative to where you run the emulator. See [its README](assets/sounds/invaders/README.md) for the file names.
+
 # Download and Run Generated Builds
 Select a recent successful build from the [GitHub Actions](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions) page, and under **Artifacts** at the bottom, download the zip file for your platform: 
    * `8080_linux.zip`
