@@ -1,7 +1,7 @@
 #include "src/frontend/frontend.hpp"
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
-#include "rom/rom_loader.hpp"
+#include "rom/rom_reader.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -9,19 +9,25 @@
 #include <exception>
 
 int main(int argc, char* argv[]) {
+
+    // Read folder name
     const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
 
     try {
         InvadersMachine machine;
 
-        // Load each ROM file at its address from INVADERS_ROM_FILES
-        RomLoadResult rom = load_rom_files(folder, INVADERS_ROM_FILES);
-        if (!rom.ok()) {
-            SDL_Log("%s", rom.error.c_str());
-            return 1;
+        // Read the Space Invaders ROM files listed in platform/invaders/invaders_rom.hpp
+        // TODO: Get the list from the machine (e.g., machine.rom_files())
+        std::vector<RomFile> rom_files = read_rom_files(folder, INVADERS_ROM_FILES);
+
+        // Load each file's bytes into memory at its designated address
+        for (const RomFile& rom_file : rom_files) {
+            bool is_loaded = machine.load_rom(rom_file.bytes, rom_file.address);
+            if (!is_loaded) {
+                SDL_Log("ROM file doesn't fit in memory: %s", rom_file.name);
+                return 1;
+            }
         }
-        for (size_t i = 0; i < rom.data.size(); i++)
-            machine.load_rom(rom.data[i], INVADERS_ROM_FILES[i].address);
 
         Frontend frontend(
             machine.title(),

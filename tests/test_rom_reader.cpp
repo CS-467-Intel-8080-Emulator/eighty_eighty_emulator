@@ -1,4 +1,4 @@
-// Unit tests for the ROM loader
+// Unit tests for the ROM reader
 // Using small, fake, non-copyrighted ROM files in a temporary folder
 
 #include <cstdint>
@@ -9,11 +9,13 @@
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 
 #include "../src/platform/invaders/invaders_rom.hpp"
-#include "../src/rom/rom_loader.hpp"
+#include "../src/rom/rom_reader.hpp"
 
 namespace fs = std::filesystem;
+using Catch::Matchers::ContainsSubstring;
 
 // A new, empty temporary folder, deleted when the test ends
 struct TempDir {
@@ -21,7 +23,7 @@ struct TempDir {
 
     TempDir() {
         std::random_device rd;
-        path = fs::temp_directory_path() / ("rom_loader_test_" + std::to_string(rd()));
+        path = fs::temp_directory_path() / ("rom_reader_test_" + std::to_string(rd()));
         fs::create_directories(path);
     }
     ~TempDir() { fs::remove_all(path); }
@@ -40,19 +42,22 @@ static const std::vector<RomFile> TWO_FILES = {
 };
 
 
-// --- Loading ---
+// --- Reading ---
 
-TEST_CASE("Loads every file's bytes, in table order", "[rom]") {
+TEST_CASE("Reads every file's bytes with its name and address, in table order", "[rom]") {
     TempDir dir;
     dir.write("a.rom", 4, 0xAA);
     dir.write("b.rom", 2, 0xBB);
 
-    RomLoadResult result = load_rom_files(dir.path.string(), TWO_FILES);
+    std::vector<RomFile> rom_files = read_rom_files(dir.path.string(), TWO_FILES);
 
-    REQUIRE(result.ok());
-    REQUIRE(result.data.size() == 2);
-    CHECK(result.data[0] == std::vector<uint8_t>{0xAA, 0xAA, 0xAA, 0xAA});
-    CHECK(result.data[1] == std::vector<uint8_t>{0xBB, 0xBB});
+    REQUIRE(rom_files.size() == 2);
+    CHECK(std::string(rom_files[0].name) == "a.rom");
+    CHECK(rom_files[0].address == 0x0000);
+    CHECK(rom_files[0].bytes == std::vector<uint8_t>{0xAA, 0xAA, 0xAA, 0xAA});
+    CHECK(std::string(rom_files[1].name) == "b.rom");
+    CHECK(rom_files[1].address == 0x0004);
+    CHECK(rom_files[1].bytes == std::vector<uint8_t>{0xBB, 0xBB});
 }
 
 TEST_CASE("Reads bytes exactly, including line-ending and Ctrl+Z bytes", "[rom]") {
@@ -63,10 +68,10 @@ TEST_CASE("Reads bytes exactly, including line-ending and Ctrl+Z bytes", "[rom]"
     }
     dir.write("b.rom", 2, 0x00);
 
-    RomLoadResult result = load_rom_files(dir.path.string(), TWO_FILES);
+    std::vector<RomFile> rom_files = read_rom_files(dir.path.string(), TWO_FILES);
 
-    REQUIRE(result.ok());
-    CHECK(result.data[0] == std::vector<uint8_t>{0x0D, 0x0A, 0x1A, 0x00});
+    REQUIRE(rom_files.size() == 2);
+    CHECK(rom_files[0].bytes == std::vector<uint8_t>{0x0D, 0x0A, 0x1A, 0x00});
 }
 
 
@@ -76,19 +81,13 @@ TEST_CASE("A missing file is reported by name", "[rom]") {
     TempDir dir;
     dir.write("a.rom", 4, 0xAA);   // b.rom is missing
 
-    RomLoadResult result = load_rom_files(dir.path.string(), TWO_FILES);
-
-    CHECK_FALSE(result.ok());
-    CHECK(result.error.find("Missing ROM file") != std::string::npos);
-    CHECK(result.error.find("b.rom") != std::string::npos);
-    CHECK(result.data.empty());
+    CHECK_THROWS_WITH(read_rom_files(dir.path.string(), TWO_FILES),
+                      ContainsSubstring("Missing ROM file") && ContainsSubstring("b.rom"));
 }
 
-TEST_CASE("A missing folder is reported as a missing file", "[rom]") {
-    RomLoadResult result = load_rom_files("no_such_folder", TWO_FILES);
-
-    CHECK_FALSE(result.ok());
-    CHECK(result.error.find("a.rom") != std::string::npos);
+TEST_CASE("A missing folder is reported by name", "[rom]") {
+    CHECK_THROWS_WITH(read_rom_files("no_such_folder", TWO_FILES),
+                      ContainsSubstring("ROM folder not found") && ContainsSubstring("no_such_folder"));
 }
 
 TEST_CASE("A file of the wrong size is reported with both sizes", "[rom]") {
@@ -96,13 +95,9 @@ TEST_CASE("A file of the wrong size is reported with both sizes", "[rom]") {
     dir.write("a.rom", 3, 0xAA);   // should be 4
     dir.write("b.rom", 2, 0xBB);
 
-    RomLoadResult result = load_rom_files(dir.path.string(), TWO_FILES);
-
-    CHECK_FALSE(result.ok());
-    CHECK(result.error.find("wrong size") != std::string::npos);
-    CHECK(result.error.find("expected 4") != std::string::npos);
-    CHECK(result.error.find("got 3") != std::string::npos);
-    CHECK(result.data.empty());
+    CHECK_THROWS_WITH(read_rom_files(dir.path.string(), TWO_FILES),
+                      ContainsSubstring("wrong size") && ContainsSubstring("expected 4")
+                      && ContainsSubstring("got 3"));
 }
 
 
@@ -118,14 +113,13 @@ TEST_CASE("Space Invaders' ROM files fill 0x0000-0x1FFF with no gaps", "[rom][in
     CHECK(next_address == 0x2000);
 }
 
-TEST_CASE("Space Invaders' ROM loads from four fake 2 KB files", "[rom][invaders]") {
+TEST_CASE("Reads Space Invaders' four fake 2 KB ROM files", "[rom][invaders]") {
     TempDir dir;
     for (const RomFile& file : INVADERS_ROM_FILES) {
         dir.write(file.name, file.size, 0x00);
     }
 
-    RomLoadResult result = load_rom_files(dir.path.string(), INVADERS_ROM_FILES);
+    std::vector<RomFile> rom_files = read_rom_files(dir.path.string(), INVADERS_ROM_FILES);
 
-    REQUIRE(result.ok());
-    CHECK(result.data.size() == 4);
+    CHECK(rom_files.size() == 4);
 }

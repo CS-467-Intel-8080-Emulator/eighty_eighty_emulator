@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "rom/rom_loader.hpp"
+#include "rom/rom_reader.hpp"
 
 // Space Invaders ROM: four 2 KB files, stored in order at 0x0000-0x1FFF.
 // Players supply these files themselves (they're copyrighted).
