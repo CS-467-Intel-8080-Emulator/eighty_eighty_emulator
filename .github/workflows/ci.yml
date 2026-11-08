@@ -1,3 +1,7 @@
+# This file was generated with the help of Claude Code.
+# This document summarizes the GenAI usage that led to this code:
+# https://drive.google.com/file/d/1kHRbPPfuhywTTaPXBz7GwhoZSb2PxOZz/view?usp=drive_link 
+
 name: CI
 on:
   # Do not run CI on push or PR for Markdown-only changes
