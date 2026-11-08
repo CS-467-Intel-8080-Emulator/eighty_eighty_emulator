@@ -1,50 +1,53 @@
-#include "src/frontend/frontend.hpp"
-#include "platform/invaders/invaders_machine.hpp"
-#include "platform/invaders/invaders_rom.hpp"
-#include "rom/rom_reader.hpp"
+#include "frontend/main_menu.hpp"
+#include "frontend/run_invaders.hpp"
+#include "platform/cpm_test/run_cpm.hpp"
 
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL.h>
 
-#include <exception>
+#include <cstdio>
+#include <string>
+
+
+static void print_usage(const char* program) {
+    std::printf("Usage:\n");
+    std::printf("  %s                        Play Space Invaders from default ROM folder (assets/roms/invaders)\n", program);
+    std::printf("  %s invaders [ROM_FOLDER]  Play Space Invaders from default or specified ROM folder\n", program);
+    std::printf("  %s cpm_test TESTPROG.COM  Run a CP/M test program, such as a CPU test ROM\n", program);
+}
 
 int main(int argc, char* argv[]) {
 
-    // Read folder name
-    const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
-
-    try {
-        InvadersMachine machine;
-
-        // Read the Space Invaders ROM files listed in platform/invaders/invaders_rom.hpp
-        // TODO: Get the list from the machine (e.g., machine.rom_files())
-        std::vector<RomFile> rom_files = read_rom_files(folder, INVADERS_ROM_FILES);
-
-        // Load each file's bytes into memory at its designated address
-        for (const RomFile& rom_file : rom_files) {
-            bool is_loaded = machine.load_rom(rom_file.bytes, rom_file.address);
-            if (!is_loaded) {
-                SDL_Log("ROM file doesn't fit in memory: %s", rom_file.name);
-                return 1;
-            }
-        }
-
-        Frontend frontend(
-            machine.title(),
-            machine.display_width(),
-            machine.display_height(),
-            0.0, // TODO: Remove rotation; let video layer handle it
-            2
-        );
-
-        while (frontend.handle_events()) {
-            machine.run_frame();
-            frontend.present(machine.pixels());
-        }
-    } catch (const std::exception& e) {
-        SDL_Log("%s", e.what());
-        return 1;
+    // 8080
+    if (argc < 2) {
+        int result = run_main_menu();
+        return result;
     }
 
-    return 0;
+    std::string command = argv[1];
+
+    // 8080 invaders [ROM_FOLDER]
+    if (command == "invaders") {
+        std::string folder = "assets/roms/invaders";
+        if (argc >= 3) {
+            folder = argv[2];
+        }
+        int result = run_invaders(folder);
+        return result;
+    }
+
+    // 8080 cpm_test TESTPROG.COM
+    if (command == "cpm_test") {
+        if (argc < 3) {
+            std::printf("Usage: %s cpm_test TESTPROG.COM\n", argv[0]);
+            return 1;
+        }
+        std::string test_path = argv[2];
+        int result = run_cpm_test(test_path);
+        return result;
+    }
+
+    // Unknown command
+    print_usage(argv[0]);
+    return 1;
 }

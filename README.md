@@ -48,8 +48,9 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # ~30s
 
 # Run test ROMs directly
-.\build\Release\cpm_test.exe build\test_roms\TST8080.COM # Windows
-./build/cpm_test build/test_roms/TST8080.COM # Linux/macOS
+.\build\Release\8080_windows.exe cpm_test build\test_roms\TST8080.COM
+./build/8080_linux cpm_test build/test_roms/TST8080.COM
+./build/8080_macos cpm_test build/test_roms/TST8080.COM
 ```
 
 # Run
