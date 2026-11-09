@@ -46,14 +46,12 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # < 1s
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # ~30s
-
-# Run test ROMs directly
-.\build\Release\cpm_test.exe build\test_roms\TST8080.COM # Windows
-./build/cpm_test build/test_roms/TST8080.COM # Linux/macOS
 ```
 
 # Run
-These commands assume you added the Space Invaders ROM files to the
+
+## Run Space Invaders from Default ROM Folder
+To run Space Invaders from the default ROM folder, call the `8080` executable with no arguments. These commands assume you added the Space Invaders ROM files to the
 `assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
@@ -64,6 +62,45 @@ These commands assume you added the Space Invaders ROM files to the
 
 # Linux
 ./build/8080_linux
+```
+
+## Run Space Invaders from Specified ROM Folder
+To specify a ROM folder, use the `8080 invaders ROM_FOLDER` syntax:
+```sh
+# Windows
+.\build\Release\8080_windows.exe invaders /path/to/rom/folder
+
+# macOS
+./build/8080_macos invaders /path/to/rom/folder
+
+# Linux
+./build/8080_linux invaders /path/to/rom/folder
+```
+
+## Run CP/M Tests Directly
+To run CP/M tests, use the `8080 cpm_test TESTPROG.COM` syntax. For example:
+```sh
+# Windows
+.\build\Release\8080_windows.exe cpm_test build\test_roms\TST8080.COM
+
+# Linux
+./build/8080_linux cpm_test build/test_roms/TST8080.COM
+
+# macOS
+./build/8080_macos cpm_test build/test_roms/TST8080.COM
+```
+
+## Get Help
+To get help using `8080`, use the `8080 help` syntax.
+```sh
+# Windows
+.\build\Release\8080_windows.exe help
+
+# Linux
+./build/8080_linux help
+
+# macOS
+./build/8080_macos help
 ```
 
 # Download and Run Generated Builds
