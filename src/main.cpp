@@ -7,41 +7,88 @@
 #include <SDL3/SDL_main.h>
 
 #include <exception>
+#include <string>
 
-int main(int argc, char* argv[]) {
+// AI was used to debug the game selection function.
 
-    // Read folder name
-    const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
+int main(int argc, char* argv[])
+{
+    try
+    {
+        // -----------------------------------------------------------------
+        // Show ROM selection menu
+        // -----------------------------------------------------------------
 
-    try {
+        Frontend frontend(
+            "8080 Emulator",
+            224,
+            256,
+            0.0,
+            2
+        );
+
+        std::string selected_folder;
+
+        while (frontend.handle_events())
+        {
+            frontend.render_menu();
+
+            if (frontend.game_selected())
+            {
+                selected_folder =
+                    "../assets/roms/" +
+                    frontend.selected_game();
+
+                break;
+            }
+        }
+
+        // User closed window without selecting anything
+        if (selected_folder.empty())
+        {
+            return 0;
+        }
+
+        // -----------------------------------------------------------------
+        // Load selected ROM
+        // -----------------------------------------------------------------
+
         InvadersMachine machine;
 
-        // Read the Space Invaders ROM files listed in platform/invaders/invaders_rom.hpp
-        // TODO: Get the list from the machine (e.g., machine.rom_files())
-        std::vector<RomFile> rom_files = read_rom_files(folder, INVADERS_ROM_FILES);
+        std::vector<RomFile> rom_files =
+            read_rom_files(
+                selected_folder.c_str(),
+                INVADERS_ROM_FILES);
 
-        // Load each file's bytes into memory at its designated address
-        for (const RomFile& rom_file : rom_files) {
-            bool is_loaded = machine.load_rom(rom_file.bytes, rom_file.address);
-            if (!is_loaded) {
-                SDL_Log("ROM file doesn't fit in memory: %s", rom_file.name);
+        for (const RomFile& rom_file : rom_files)
+        {
+            bool is_loaded =
+                machine.load_rom(
+                    rom_file.bytes,
+                    rom_file.address);
+
+            if (!is_loaded)
+            {
+                SDL_Log(
+                    "ROM file doesn't fit in memory: %s",
+                    rom_file.name);
+
                 return 1;
             }
         }
 
-        Frontend frontend(
-            machine.title(),
-            machine.display_width(),
-            machine.display_height(),
-            0.0, // TODO: Remove rotation; let video layer handle it
-            2
-        );
+        // -----------------------------------------------------------------
+        // Run emulator
+        // -----------------------------------------------------------------
 
-        while (frontend.handle_events()) {
+        while (frontend.handle_events())
+        {
             machine.run_frame();
             frontend.present(machine.pixels());
         }
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         SDL_Log("%s", e.what());
         return 1;
     }
