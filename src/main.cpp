@@ -30,9 +30,17 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        std::string state_in = "invaders.state";
-        if (!machine.load_state(StateFile::load(state_in))) {
-            SDL_Log("Failed to load state from file: %s", state_in.c_str());
+        // TODO: Get state file from arg input or user input
+        const std::string state_file = "states/invaders.autosave.state";
+
+        // Load machine state from file if it exists; on failure, start fresh
+        try {
+            if (machine.load_state(StateFile::read(state_file)))
+                SDL_Log("Loaded save state: %s", state_file.c_str());
+            else
+                SDL_Log("Failed to load save state (Wrong size): %s", state_file.c_str());
+        } catch (const std::exception& e) {
+            SDL_Log("Failed to load save state. %s", e.what());
         }
 
         Frontend frontend(
@@ -48,8 +56,13 @@ int main(int argc, char* argv[]) {
             frontend.present(machine.pixels());
         }
 
-        std::string state_out = "invaders.state";
-        StateFile::save(state_out, machine.save_state());
+        // Autosave machine state on exit
+        try {
+            StateFile::write(state_file, machine.save_state());
+            SDL_Log("Created save state: %s", state_file.c_str());
+        } catch (const std::exception& e) {
+            SDL_Log("Failed to create save state. %s", e.what());
+        }
     } catch (const std::exception& e) {
         SDL_Log("%s", e.what());
         return 1;

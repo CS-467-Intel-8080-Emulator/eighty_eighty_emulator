@@ -1,3 +1,8 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcript documents the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/14UFLJnbF9rFUq6pEIBuArmQJAz6fYccr?usp=drive_link
+
 // Unit tests for save and load state: the byte writer/reader, each component,
 // and the full Invaders machine.
 
