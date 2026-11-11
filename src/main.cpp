@@ -2,6 +2,7 @@
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
+#include "state/state.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -29,6 +30,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        std::string state_in = "invaders.state";
+        if (!machine.load_state(StateFile::load(state_in))) {
+            SDL_Log("Failed to load state from file: %s", state_in.c_str());
+        }
+
         Frontend frontend(
             machine.title(),
             machine.display_width(),
@@ -41,6 +47,9 @@ int main(int argc, char* argv[]) {
             machine.run_frame();
             frontend.present(machine.pixels());
         }
+
+        std::string state_out = "invaders.state";
+        StateFile::save(state_out, machine.save_state());
     } catch (const std::exception& e) {
         SDL_Log("%s", e.what());
         return 1;

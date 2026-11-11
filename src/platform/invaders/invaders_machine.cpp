@@ -4,7 +4,7 @@
 // https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
 
 #include "invaders_machine.hpp"
-#include "tools/state.hpp"
+#include "state/state.hpp"
 
 InvadersMachine::InvadersMachine() {
     cpu_.set_io(&io_);
@@ -47,7 +47,7 @@ std::vector<uint8_t> InvadersMachine::save_state() const {
     return writer.get_buffer();
 }
 
-bool InvadersMachine::load_state(std::vector<uint8_t>& buffer) {
+bool InvadersMachine::load_state(const std::vector<uint8_t>& buffer) {
     if (buffer.size() != STATE_SIZE)
         return false;
     StateReader reader = StateReader();

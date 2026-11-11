@@ -35,7 +35,7 @@ public:
 
     // Save and load machine state
     std::vector<uint8_t> save_state() const override;
-    bool load_state(std::vector<uint8_t>& buffer) override;
+    bool load_state(const std::vector<uint8_t>& buffer) override;
 
 private:
     CPU cpu_;

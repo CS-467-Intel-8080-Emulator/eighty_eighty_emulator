@@ -24,7 +24,7 @@ public:
 
     // Save and load machine state
     virtual std::vector<uint8_t> save_state() const = 0;
-    virtual bool load_state(std::vector<uint8_t>& buffer) = 0;
+    virtual bool load_state(const std::vector<uint8_t>& buffer) = 0;
 };
 
 #endif

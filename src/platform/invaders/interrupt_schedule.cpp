@@ -1,6 +1,6 @@
 #include "interrupt_schedule.hpp"
 #include "timing.hpp"
-#include "tools/state.hpp"
+#include "state/state.hpp"
 
 bool InterruptSchedule::add_cycles(uint32_t cycles) {
     frame_cycles_ += cycles;

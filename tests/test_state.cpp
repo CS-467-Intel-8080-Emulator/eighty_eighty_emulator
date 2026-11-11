@@ -8,7 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "cpu_test_helpers.hpp"
-#include "../src/tools/state.hpp"
+#include "../src/state/state.hpp"
 #include "../src/platform/invaders/interrupt_schedule.hpp"
 #include "../src/platform/invaders/invaders_io.hpp"
 #include "../src/platform/invaders/invaders_machine.hpp"

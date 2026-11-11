@@ -4,7 +4,7 @@
 // https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
 
 #include "invaders_memory.hpp"
-#include "tools/state.hpp"
+#include "state/state.hpp"
 
 #include <cstddef>
 

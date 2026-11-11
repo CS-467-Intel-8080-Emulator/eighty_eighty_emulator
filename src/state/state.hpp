@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
 
 // Serializes machine state to a byte buffer.
 class StateWriter {
@@ -34,6 +35,13 @@ public:
 private:
     std::vector<uint8_t> buffer_;
     std::size_t position_ = 0;
+};
+
+// Utility class for saving and loading state to/from a file.
+class StateFile {
+public:
+    static void save(const std::string& filename, const std::vector<uint8_t>& buffer);
+    static std::vector<uint8_t> load(const std::string& filename);
 };
 
 #endif

@@ -15,7 +15,7 @@ file(GLOB_RECURSE EMU_SOURCES CONFIGURE_DEPENDS
     src/core/*.cpp
     src/rom/*.cpp
     src/platform/*.cpp
-    src/tools/*.cpp
+    src/state/*.cpp
 )
 list(FILTER EMU_SOURCES EXCLUDE REGEX "main\\.cpp$")
 list(FILTER EMU_SOURCES EXCLUDE REGEX "/fake_invaders/") # TODO: Remove when platform/fake_invaders is deleted
