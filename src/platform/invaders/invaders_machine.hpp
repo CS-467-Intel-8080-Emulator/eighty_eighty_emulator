@@ -33,6 +33,12 @@ public:
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
 
+    void set_input(Input input, bool pressed) override { io_.inputs().set(input, pressed); }
+
+    // These should be set before running, the game reads these at startup
+    // Returns false and changes nothing if the settings are invalid
+    bool set_dips(const DipSwitches& dips) { return io_.inputs().set_dips(dips); }
+
 private:
     CPU cpu_;
     InvadersMemory memory_;

@@ -9,6 +9,18 @@
 
 #include <cstdint>
 
+enum class Input {
+    Coin,
+    P1Start,
+    P2Start,
+    P1Left,
+    P1Right,
+    P1Fire,
+    P2Left,
+    P2Right,
+    P2Fire,
+    Tilt,
+};
 
 class Machine {
 public:
@@ -21,6 +33,9 @@ public:
 
     virtual void run_frame() = 0;
     virtual const uint32_t* pixels() const = 0;
+
+    // press or release controls
+    virtual void set_input(Input /*input*/, bool /*pressed*/) {}
 };
 
 #endif
