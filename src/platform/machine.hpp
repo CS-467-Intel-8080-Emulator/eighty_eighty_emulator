@@ -8,7 +8,7 @@
 #define MACHINE_HPP
 
 #include <cstdint>
-
+#include <vector>
 
 class Machine {
 public:
@@ -21,6 +21,10 @@ public:
 
     virtual void run_frame() = 0;
     virtual const uint32_t* pixels() const = 0;
+
+    // Save and load machine state
+    virtual std::vector<uint8_t> save_state() const = 0;
+    virtual bool load_state(std::vector<uint8_t>& buffer) = 0;
 };
 
 #endif

@@ -33,12 +33,18 @@ public:
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
 
+    // Save and load machine state
+    std::vector<uint8_t> save_state() const override;
+    bool load_state(std::vector<uint8_t>& buffer) override;
+
 private:
     CPU cpu_;
     InvadersMemory memory_;
     InvadersIO io_;
     InterruptSchedule schedule_;
     Video video_;
+
+    static constexpr std::size_t STATE_SIZE = 8216; // Total size of serialized Invaders machine state in bytes
 };
 
 #endif

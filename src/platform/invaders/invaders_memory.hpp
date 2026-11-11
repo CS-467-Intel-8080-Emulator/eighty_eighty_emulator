@@ -12,6 +12,9 @@
 
 #include "core/memory_bus.hpp"
 
+class StateWriter;
+class StateReader;
+
 /*
 Space Invaders hardware contains 16 KB of memory (0x0000-0x3FFF) which requires
 only 14 of the CPU's 16 addressing bits. Those 16KB of memory are mapped like so:
@@ -44,6 +47,10 @@ public:
     // For initial ROM load; bypasses write()'s read-only guard on 0x0000-0x1FFF
     // Returns false and changes nothing if the bytes don't fit in ROM block
     bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0);
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     std::array<uint8_t, ADDR_MASK + 1> mem_;

@@ -3,6 +3,9 @@
 
 #include <cstdint>
 
+class StateWriter;
+class StateReader;
+
 // Space Invaders hardware shift register, used to shift sprites since the
 // 8080 has no barrel shifter. The machine's IOBus maps it to ports:
 //   OUT 2: write_offset
@@ -18,6 +21,10 @@ public:
 
     // The 8 bits starting `offset` bits below the top of the 16-bit register
     uint8_t read() const;
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     uint16_t value_ = 0;
