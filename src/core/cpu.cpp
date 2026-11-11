@@ -10,8 +10,8 @@
 // ===============================================================
 uint32_t CPU::op_unimplemented(MemoryBus&) {
     std::cerr << "Unimplemented opcode: 0x"
-        << std::hex << std::uppercase << (int)current_opcode
-        << " at PC=0x" << pc << std::dec << std::endl;
+              << std::hex << std::uppercase << (int)current_opcode
+              << " at PC=0x" << pc << std::dec << std::endl;
 
     halted = true;
     return 0;
@@ -22,20 +22,21 @@ uint32_t CPU::op_unimplemented(MemoryBus&) {
 // ===============================================================
 CPU::CPU()
     : a(0),
-    b(0),
-    c(0),
-    d(0),
-    e(0),
-    h(0),
-    l(0),
-    pc(0),
-    sp(0),
-    flags(0),
-    current_opcode(0),
-    interrupts_enabled(false),
-    ei_pending(false),
-    halted(false),
-    io(nullptr) {
+      b(0),
+      c(0),
+      d(0),
+      e(0),
+      h(0),
+      l(0),
+      pc(0),
+      sp(0),
+      flags(0),
+      current_opcode(0),
+      interrupts_enabled(false),
+      ei_pending(false),
+      halted(false),
+      io(nullptr)
+{
     table.fill(&CPU::op_unimplemented);
 
     // ============================================================
@@ -234,7 +235,7 @@ CPU::CPU()
 // ===============================================================
 // CPU STEP FUNCTION
 // ===============================================================
-uint32_t CPU::step(MemoryBus& memory) {
+ uint32_t CPU::step(MemoryBus& memory) {
     if (ei_pending) {
         interrupts_enabled = true;
         ei_pending = false;
@@ -245,7 +246,7 @@ uint32_t CPU::step(MemoryBus& memory) {
     }
 
     uint8_t opcode = memory.read(pc);
-    pc = (pc + 1) & 0xFFFF;
+    pc = (pc +1) & 0xFFFF;
     current_opcode = opcode;
     return (this->*table[current_opcode])(memory);
 }
@@ -307,7 +308,8 @@ uint16_t CPU::fetch_word(MemoryBus& memory) {
 }
 
 // Push a word (SP wraps at 0x0000)
-void CPU::push_word(MemoryBus& memory, uint16_t value) {
+void CPU::push_word(MemoryBus& memory, uint16_t value)
+{
     uint8_t hi = value >> 8;
     uint8_t lo = value & 0xFF;
 
@@ -319,7 +321,8 @@ void CPU::push_word(MemoryBus& memory, uint16_t value) {
 }
 
 // Pop a word (SP wraps at 0xFFFF)
-uint16_t CPU::pop_word(MemoryBus& memory) {
+uint16_t CPU::pop_word(MemoryBus& memory)
+{
     uint8_t lo = memory.read(sp);
     sp = (sp + 1) & 0xFFFF;
 
@@ -332,15 +335,15 @@ uint16_t CPU::pop_word(MemoryBus& memory) {
 // Evaluate 3-bit condition code (cc) used by Jcc, Ccc, Rcc
 bool CPU::check_condition(uint8_t opcode) const {
     uint8_t cc = (opcode >> 3) & 0x07;
-    switch (cc) {
-    case 0: return !(flags & FLAG_ZERO);    // NZ:  Not Zero
-    case 1: return (flags & FLAG_ZERO);     // Z:   Zero
-    case 2: return !(flags & FLAG_CARRY);   // NC:  Not Carry
-    case 3: return (flags & FLAG_CARRY);    // C:   Carry
-    case 4: return !(flags & FLAG_PARITY);  // PO:  Parity Odd
-    case 5: return (flags & FLAG_PARITY);   // PE:  Parity Even
-    case 6: return !(flags & FLAG_SIGN);    // P:   Plus
-    case 7: return (flags & FLAG_SIGN);     // M:   Minus
+    switch(cc) {
+        case 0: return !(flags & FLAG_ZERO);    // NZ:  Not Zero
+        case 1: return (flags & FLAG_ZERO);     // Z:   Zero
+        case 2: return !(flags & FLAG_CARRY);   // NC:  Not Carry
+        case 3: return (flags & FLAG_CARRY);    // C:   Carry
+        case 4: return !(flags & FLAG_PARITY);  // PO:  Parity Odd
+        case 5: return (flags & FLAG_PARITY);   // PE:  Parity Even
+        case 6: return !(flags & FLAG_SIGN);    // P:   Plus
+        case 7: return (flags & FLAG_SIGN);     // M:   Minus
     }
     return false;
 }
@@ -355,28 +358,28 @@ uint32_t CPU::op_lxi(MemoryBus& memory) {
     uint16_t value = fetch_word(memory);
     // Determine which register pair to load based on the opcode
     switch (current_opcode) {
-    case 0x01: // LXI B
-        c = value & 0xFF;
-        b = value >> 8;
-        break;
-    case 0x11: // LXI D
-        e = value & 0xFF;
-        d = value >> 8;
-        break;
-    case 0x21: // LXI H
-        l = value & 0xFF;
-        h = value >> 8;
-        break;
-    case 0x31: // LXI SP
-        sp = value;
-        break;
+        case 0x01: // LXI B
+            c = value & 0xFF;
+            b = value >> 8;
+            break;
+        case 0x11: // LXI D
+            e = value & 0xFF;
+            d = value >> 8;
+            break;
+        case 0x21: // LXI H
+            l = value & 0xFF;
+            h = value >> 8;
+            break;
+        case 0x31: // LXI SP
+            sp = value;
+            break;
     }
     return 10;
 }
 
 // MOV instruction handler
 uint32_t CPU::op_mov(MemoryBus& memory) {
-    uint8_t src = current_opcode & 0x07;
+    uint8_t src = current_opcode & 0x07; 
     uint8_t dst = (current_opcode >> 3) & 0x07;
 
     uint8_t value = read_reg_or_memory(src, memory);
@@ -410,7 +413,7 @@ uint32_t CPU::op_sta(MemoryBus& memory) {
 }
 
 // LHLD instruction handler
-uint32_t CPU::op_lhld(MemoryBus& memory) {
+uint32_t CPU::op_lhld(MemoryBus& memory){
     uint16_t addr = fetch_word(memory);
     // Load L then H from memory
     l = memory.read(addr);
@@ -419,7 +422,7 @@ uint32_t CPU::op_lhld(MemoryBus& memory) {
 }
 
 // SHLD instruction handler
-uint32_t CPU::op_shld(MemoryBus& memory) {
+uint32_t CPU::op_shld(MemoryBus& memory){
     uint16_t addr = fetch_word(memory);
     // Store L then H to memory
     memory.write(addr, l);
@@ -431,7 +434,7 @@ uint32_t CPU::op_shld(MemoryBus& memory) {
 uint32_t CPU::op_ldax(MemoryBus& memory) {
     uint16_t adder;
     if (current_opcode == 0x0A) {
-        adder = (b << 8) | c;
+        adder = (b <<8) | c;
     } else {
         adder = (d << 8) | e;
     }
@@ -463,35 +466,35 @@ uint32_t CPU::op_xchg(MemoryBus& memory) {
 uint32_t CPU::op_inx(MemoryBus& memory) {
     // Determine which register pair to increment based on the opcode
     switch (current_opcode) {
-    case 0x03: // INX B
-    {
-        uint16_t bc = (b << 8) | c;
-        bc++;
-        b = (bc >> 8) & 0xFF;
-        c = bc & 0xFF;
-    }
-    break;
-    case 0x13: // INX D
-    {
-        uint16_t de = (d << 8) | e;
-        de++;
-        d = (de >> 8) & 0xFF;
-        e = de & 0xFF;
-    }
-    break;
-    case 0x23: // INX H
-    {
-        uint16_t hl = (h << 8) | l;
-        hl++;
-        h = (hl >> 8) & 0xFF;
-        l = hl & 0xFF;
-    }
-    break;
-    case 0x33: // INX SP
-    {
-        sp++;
-    }
-    break;
+        case 0x03: // INX B
+        {
+            uint16_t bc = (b << 8) | c;
+            bc++;
+            b = (bc >> 8) & 0xFF;
+            c = bc & 0xFF;
+        }
+        break;
+        case 0x13: // INX D
+        {
+            uint16_t de = (d << 8) | e;
+            de++;
+            d = (de >> 8) & 0xFF;
+            e = de & 0xFF;
+        }
+        break;
+        case 0x23: // INX H
+        {
+            uint16_t hl = (h << 8) | l;
+            hl++;
+            h = (hl >> 8) & 0xFF;
+            l = hl & 0xFF;
+        }
+        break;
+        case 0x33: // INX SP
+        {
+            sp++;
+        }
+        break;
     }
     return 5;
 }
@@ -499,57 +502,57 @@ uint32_t CPU::op_inx(MemoryBus& memory) {
 // DCX instruction handler
 uint32_t CPU::op_dcx(MemoryBus& memory) {
     switch (current_opcode) {
-    case 0x0B: // DCX B
-    {
-        uint16_t bc = (b << 8) | c;
-        bc--;
-        b = (bc >> 8) & 0xFF;
-        c = bc & 0xFF;
-    }
-    break;
-    case 0x1B: // DCX D
-    {
-        uint16_t de = (d << 8) | e;
-        de--;
-        d = (de >> 8) & 0xFF;
-        e = de & 0xFF;
-    }
-    break;
-    case 0x2B: // DCX H
-    {
-        uint16_t hl = (h << 8) | l;
-        hl--;
-        h = (hl >> 8) & 0xFF;
-        l = hl & 0xFF;
-    }
-    break;
-    case 0x3B: // DCX SP
-        sp--;
-        break;
+        case 0x0B: // DCX B
+            {
+                uint16_t bc = (b << 8) | c;
+                bc--;
+                b = (bc >> 8) & 0xFF;
+                c = bc & 0xFF;
+            }
+            break;
+        case 0x1B: // DCX D
+            {
+                uint16_t de = (d << 8) | e;
+                de--;
+                d = (de >> 8) & 0xFF;
+                e = de & 0xFF;
+            }
+            break;
+        case 0x2B: // DCX H
+            {
+                uint16_t hl = (h << 8) | l;
+                hl--;
+                h = (hl >> 8) & 0xFF;
+                l = hl & 0xFF;
+            }
+            break;
+        case 0x3B: // DCX SP
+            sp--;
+            break;
     }
     return 5;
 }
 
 // PUSH instruction handler (Push B, D, H, PSW)
-uint32_t CPU::op_push(MemoryBus& memory) {
+uint32_t CPU::op_push(MemoryBus& memory){
     uint16_t value = 0;
 
     switch (current_opcode) {
-    case 0xC5: // Push B
-        value = (b << 8) | c;
-        break;
+        case 0xC5: // Push B
+            value = (b << 8) | c;
+            break;
 
-    case 0xD5: // Push D
-        value = (d << 8) | e;
-        break;
+        case 0xD5: // Push D
+            value = (d << 8) | e;
+            break;
 
-    case 0xE5: // PUSH H
-        value = (h << 8) | l;
-        break;
+        case 0xE5: // PUSH H
+            value = (h << 8) | l;
+            break;
 
-    case 0xF5: // PUSH PSW
-        value = (a << 8) | ((flags & 0xD7) | 0x02);
-        break;
+        case 0xF5: // PUSH PSW
+            value = (a << 8) | ((flags & 0xD7) | 0x02);
+            break;
     }
 
     push_word(memory, value);
@@ -558,36 +561,36 @@ uint32_t CPU::op_push(MemoryBus& memory) {
 }
 
 // POP instruction handler
-uint32_t CPU::op_pop(MemoryBus& memory) {
+uint32_t CPU::op_pop(MemoryBus& memory){
     uint16_t value = pop_word(memory);
 
     switch (current_opcode) {
-    case 0xC1: // POP B
-        b = (value >> 8) & 0xFF;
-        c = value & 0xFF;
-        break;
+        case 0xC1: // POP B
+            b = (value >> 8) & 0xFF;
+            c = value & 0xFF;
+            break;
 
-    case 0xD1: // POP D
-        d = (value >> 8) & 0xFF;
-        e = value & 0xFF;
-        break;
+        case 0xD1: // POP D
+            d = (value >> 8) & 0xFF;
+            e = value & 0xFF;
+            break;
 
-    case 0xE1: // POP H
-        h = (value >> 8) & 0xFF;
-        l = value & 0xFF;
-        break;
+        case 0xE1: // POP H
+            h = (value >> 8) & 0xFF;
+            l = value & 0xFF;
+            break;
 
-    case 0xF1: // POP PSW
-        a = (value >> 8) & 0xFF;
-        flags = ((value & 0xFF) & 0xD7) | 0x02;
-        break;
+        case 0xF1: // POP PSW
+            a = (value >> 8) & 0xFF;
+            flags = ((value & 0xFF) & 0xD7) | 0x02;
+            break;
     }
 
     return 10;
 }
 
 // XTHL instruction handler
-uint32_t CPU::op_xthl(MemoryBus& memory) {
+uint32_t CPU::op_xthl(MemoryBus& memory){
     uint8_t temp_l = l;
     uint8_t temp_h = h;
 
@@ -595,13 +598,13 @@ uint32_t CPU::op_xthl(MemoryBus& memory) {
     h = memory.read(sp + 1) & 0xFFFF;
 
     memory.write(sp, temp_l);
-    memory.write(sp + 1, temp_h);
+    memory.write(sp +1, temp_h);
 
     return 18;
 }
 
 // SPHL instruction handler
-uint32_t CPU::op_sphl(MemoryBus& memory) {
+uint32_t CPU::op_sphl (MemoryBus& memory) {
     sp = (h << 8) | l;
     return 5;
 }
@@ -726,28 +729,28 @@ Register and memory helper functions
 */
 uint8_t CPU::read_reg_or_memory(uint8_t index, MemoryBus& memory) {
     switch (index) {
-    case 0: return b;
-    case 1: return c;
-    case 2: return d;
-    case 3: return e;
-    case 4: return h;
-    case 5: return l;
-    case 6: return memory.read((h << 8) | l);
-    case 7: return a;
-    }
+        case 0: return b;
+        case 1: return c;
+        case 2: return d;
+        case 3: return e;
+        case 4: return h;
+        case 5: return l;
+        case 6: return memory.read((h << 8) | l);
+        case 7: return a;
+        }
     return 0;
 }
 
 void CPU::write_reg_or_memory(uint8_t index, uint8_t value, MemoryBus& memory) {
     switch (index) {
-    case 0: b = value; break;
-    case 1: c = value; break;
-    case 2: d = value; break;
-    case 3: e = value; break;
-    case 4: h = value; break;
-    case 5: l = value; break;
-    case 6: memory.write((h << 8) | l, value); break;
-    case 7: a = value; break;
+        case 0: b = value; break;
+        case 1: c = value; break;
+        case 2: d = value; break;
+        case 3: e = value; break;
+        case 4: h = value; break;
+        case 5: l = value; break;
+        case 6: memory.write((h << 8) | l, value); break;
+        case 7: a = value; break;
     }
 }
 
@@ -937,10 +940,10 @@ uint32_t CPU::op_dad(MemoryBus&) {
     uint16_t value = 0;
 
     switch ((current_opcode >> 4) & 0x03) {
-    case 0: value = (b << 8) | c; break;
-    case 1: value = (d << 8) | e; break;
-    case 2: value = hl; break;
-    case 3: value = sp; break;
+        case 0: value = (b << 8) | c; break;
+        case 1: value = (d << 8) | e; break;
+        case 2: value = hl; break;
+        case 3: value = sp; break;
     }
 
     uint32_t result = (uint32_t)hl + value;
