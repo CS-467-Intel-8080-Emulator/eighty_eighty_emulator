@@ -37,6 +37,10 @@ int main(int argc, char* argv[]) {
             2
         );
 
+        frontend.set_input_handler([&machine](Input input, bool pressed) {
+            machine.set_input(input, pressed);
+        });
+
         while (frontend.handle_events()) {
             machine.run_frame();
             frontend.present(machine.pixels());

@@ -5,6 +5,23 @@
 #include <stdexcept>
 #include <string>
 
+// keyboard key to arcade control mapping
+namespace {
+    struct KeyBinding {SDL_Scancode key; Input input;};
+    const KeyBinding KEY_BINDINGS[] = {
+        { SDL_SCANCODE_C,     Input::Coin },
+        { SDL_SCANCODE_1,     Input::P1Start },
+        { SDL_SCANCODE_2,     Input::P2Start },
+        { SDL_SCANCODE_LEFT,  Input::P1Left },
+        { SDL_SCANCODE_RIGHT, Input::P1Right },
+        { SDL_SCANCODE_SPACE, Input::P1Fire },
+        { SDL_SCANCODE_A,     Input::P2Left },
+        { SDL_SCANCODE_D,     Input::P2Right },
+        { SDL_SCANCODE_W,     Input::P2Fire },
+        { SDL_SCANCODE_T,     Input::Tilt },
+    };
+}
+
 Frontend::Frontend(const char* title, int w_native, int h_native, double rotation, int scale)
     : w_native_{ w_native }, rotation_(rotation) {
 
@@ -48,6 +65,14 @@ bool Frontend::handle_events() {
 
         if (event.type == SDL_EVENT_KEY_DOWN && event.key.scancode == SDL_SCANCODE_ESCAPE)
             return false;
+
+        // send key press/release input to the input handler
+        if ((event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) && input_handler_) {
+            for (const KeyBinding& binding : KEY_BINDINGS) {
+                if (binding.key == event.key.scancode)
+                    input_handler_(binding.input, event.type == SDL_EVENT_KEY_DOWN);
+            }
+        }
     }
 
     return true;
