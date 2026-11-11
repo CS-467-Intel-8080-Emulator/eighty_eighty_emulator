@@ -6,11 +6,18 @@
 #include "core/io_bus.hpp"
 #include "shift_register.hpp"
 
+class StateWriter;
+class StateReader;
+
 // Space Invaders port map: routes the CPU's IN and OUT to the board's devices
 class InvadersIO : public IOBus {
 public:
     uint8_t in(uint8_t port) override;
     void out(uint8_t port, uint8_t value) override;
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     // IN ports

@@ -6,6 +6,8 @@
 
 class MemoryBus;
 class IOBus;
+class StateWriter;
+class StateReader;
 
 class CPU {
 public:
@@ -33,6 +35,10 @@ public:
     // Setters for loading and running programs
     void set_pc(uint16_t value) { pc = value; }
     void set_sp(uint16_t value) { sp = value; }
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
 

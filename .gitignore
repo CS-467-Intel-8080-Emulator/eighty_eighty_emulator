@@ -1,4 +1,5 @@
 build/
+states/
 CMakePresets.json
 assets/roms/invaders/*
 !assets/roms/invaders/README.md
