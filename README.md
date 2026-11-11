@@ -100,6 +100,16 @@ Extract the executable from the zip file and double-click `8080_windows.exe`.
   chmod +x 8080_macos
   ```
 
+# Controls
+| Key | Control |
+|---|---|
+| `C` | Insert coin |
+| `1` / `2` | 1-player / 2-player start |
+| `←` / `→` / `Space` | Player 1 left / right / fire |
+| `A` / `D` / `W` | Player 2 left / right / fire |
+| `T` | Tilt |
+| `Esc` | Quit |
+
 # CPU Test ROMs
 The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
 
