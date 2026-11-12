@@ -10,7 +10,7 @@
 #include <exception>
 #include <string>
 
-// AI was used to debug the game selection function.
+// AI was used to debug the game selection function and clean load/run ROMs function.
 
 int main(int argc, char* argv[])
 {
