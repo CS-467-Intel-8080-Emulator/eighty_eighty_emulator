@@ -37,6 +37,24 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SDL3)
 
 # ===============================================================
+# SDL_TTF
+# ===============================================================
+# Build SDL_TTF statically so there's no SDL_TFF.dll / .so to hunt down at runtime
+set(SDLTTF_SAMPLES OFF CACHE BOOL "" FORCE)
+set(SDLTTF_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(SDLTTF_VENDORED ON CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    SDL3_ttf
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+    GIT_TAG release-3.2.2
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(SDL3_ttf)
+
+# ===============================================================
 # MAIN PROGRAM
 # ===============================================================
 if(WIN32)
@@ -49,9 +67,11 @@ endif()
 add_executable(8080
     src/main.cpp
     src/frontend/frontend.cpp
+    src/frontend/menu.cpp
+    src/frontend/asset_paths.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
+target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
 install(TARGETS 8080 DESTINATION .)
 

@@ -2,49 +2,116 @@
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
+#include "src/frontend/asset_paths.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include <exception>
+#include <string>
 
-int main(int argc, char* argv[]) {
+// AI was used to debug the game selection function and clean load/run ROMs function.
 
-    // Read folder name
-    const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
+int main(int argc, char* argv[])
+{
+    int result = 0;
 
-    try {
-        InvadersMachine machine;
+    try
+    {
+        // -----------------------------------------------------------------
+        // Show ROM selection menu
+        // -----------------------------------------------------------------
 
-        // Read the Space Invaders ROM files listed in platform/invaders/invaders_rom.hpp
-        // TODO: Get the list from the machine (e.g., machine.rom_files())
-        std::vector<RomFile> rom_files = read_rom_files(folder, INVADERS_ROM_FILES);
+        Frontend frontend(
+            "8080 Emulator",
+            224,
+            256,
+            0.0,
+            2
+            // TODO: Menu currently uses Space Invaders display
+            // dimensions. Generalize this when supporting multiple machine types.
+        );
 
-        // Load each file's bytes into memory at its designated address
-        for (const RomFile& rom_file : rom_files) {
-            bool is_loaded = machine.load_rom(rom_file.bytes, rom_file.address);
-            if (!is_loaded) {
-                SDL_Log("ROM file doesn't fit in memory: %s", rom_file.name);
-                return 1;
+        // Directory name of the selected ROM set (e.g. "invaders").
+        std::string selected_game;
+
+        while (frontend.handle_events())
+        {
+            frontend.render_menu();
+
+            if (frontend.game_selected())
+            {
+                selected_game =
+                    frontend.selected_game();
+
+                break;
             }
         }
 
-        Frontend frontend(
-            machine.title(),
-            machine.display_width(),
-            machine.display_height(),
-            0.0, // TODO: Remove rotation; let video layer handle it
-            2
-        );
-
-        while (frontend.handle_events()) {
-            machine.run_frame();
-            frontend.present(machine.pixels());
+        // User closed the window without selecting a ROM.
+        if (selected_game.empty())
+        {
+            result = 0;
         }
-    } catch (const std::exception& e) {
+        else
+        {
+            // Build the full path to the selected ROM set.
+            const auto rom_path =
+                asset_root() /
+                "roms" /
+                selected_game;
+
+            // -----------------------------------------------------------------
+            // Load selected ROM
+            // -----------------------------------------------------------------
+
+            InvadersMachine machine;
+
+            std::vector<RomFile> rom_files =
+                read_rom_files(
+                    rom_path.string().c_str(),
+                    INVADERS_ROM_FILES);
+
+            for (const RomFile& rom_file : rom_files)
+            {
+                bool is_loaded =
+                    machine.load_rom(
+                        rom_file.bytes,
+                        rom_file.address);
+
+                if (!is_loaded)
+                {
+                    SDL_Log(
+                        "ROM file doesn't fit in memory: %s",
+                        rom_file.name);
+
+                    result = 1;
+                    break;
+                }
+            }
+
+            // -----------------------------------------------------------------
+            // Run emulator
+            // -----------------------------------------------------------------
+
+            if (result == 0)
+            {
+                while (frontend.handle_events())
+                {
+                    machine.run_frame();
+                    frontend.present(machine.pixels());
+                }
+            }
+        }
+    }
+    catch (const std::exception& e)
+    {
         SDL_Log("%s", e.what());
-        return 1;
+        result = 1;
     }
 
-    return 0;
+    TTF_Quit();
+    SDL_Quit();
+
+    return result;
 }
