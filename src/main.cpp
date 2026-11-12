@@ -2,6 +2,7 @@
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
+#include "src/frontend/asset_paths.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -13,6 +14,8 @@
 
 int main(int argc, char* argv[])
 {
+    int result = 0;
+
     try
     {
         // -----------------------------------------------------------------
@@ -25,9 +28,12 @@ int main(int argc, char* argv[])
             256,
             0.0,
             2
+            // TODO: Menu currently uses Space Invaders display
+            // dimensions. Generalize this when supporting multiple machine types.
         );
 
-        std::string selected_folder;
+        // Directory name of the selected ROM set (e.g. "invaders").
+        std::string selected_game;
 
         while (frontend.handle_events())
         {
@@ -35,63 +41,77 @@ int main(int argc, char* argv[])
 
             if (frontend.game_selected())
             {
-                selected_folder =
-                    "../assets/roms/" +
+                selected_game =
                     frontend.selected_game();
 
                 break;
             }
         }
 
-        // User closed window without selecting anything
-        if (selected_folder.empty())
+        // User closed the window without selecting a ROM.
+        if (selected_game.empty())
         {
-            return 0;
+            result = 0;
         }
-
-        // -----------------------------------------------------------------
-        // Load selected ROM
-        // -----------------------------------------------------------------
-
-        InvadersMachine machine;
-
-        std::vector<RomFile> rom_files =
-            read_rom_files(
-                selected_folder.c_str(),
-                INVADERS_ROM_FILES);
-
-        for (const RomFile& rom_file : rom_files)
+        else
         {
-            bool is_loaded =
-                machine.load_rom(
-                    rom_file.bytes,
-                    rom_file.address);
+            // Build the full path to the selected ROM set.
+            const auto rom_path =
+                asset_root() /
+                "roms" /
+                selected_game;
 
-            if (!is_loaded)
+            // -----------------------------------------------------------------
+            // Load selected ROM
+            // -----------------------------------------------------------------
+
+            InvadersMachine machine;
+
+            std::vector<RomFile> rom_files =
+                read_rom_files(
+                    rom_path.string().c_str(),
+                    INVADERS_ROM_FILES);
+
+            for (const RomFile& rom_file : rom_files)
             {
-                SDL_Log(
-                    "ROM file doesn't fit in memory: %s",
-                    rom_file.name);
+                bool is_loaded =
+                    machine.load_rom(
+                        rom_file.bytes,
+                        rom_file.address);
 
-                return 1;
+                if (!is_loaded)
+                {
+                    SDL_Log(
+                        "ROM file doesn't fit in memory: %s",
+                        rom_file.name);
+
+                    result = 1;
+                    break;
+                }
             }
-        }
 
-        // -----------------------------------------------------------------
-        // Run emulator
-        // -----------------------------------------------------------------
+            // -----------------------------------------------------------------
+            // Run emulator
+            // -----------------------------------------------------------------
 
-        while (frontend.handle_events())
-        {
-            machine.run_frame();
-            frontend.present(machine.pixels());
+            if (result == 0)
+            {
+                while (frontend.handle_events())
+                {
+                    machine.run_frame();
+                    frontend.present(machine.pixels());
+                }
+            }
         }
     }
     catch (const std::exception& e)
     {
         SDL_Log("%s", e.what());
-        return 1;
+        result = 1;
     }
 
-    return 0;
+    TTF_Quit();
+    SDL_Quit();
+
+    return result;
 }

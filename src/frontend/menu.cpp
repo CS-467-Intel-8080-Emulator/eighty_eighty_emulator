@@ -1,4 +1,5 @@
 #include "menu.hpp"
+#include "asset_paths.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -147,8 +148,13 @@ Menu::~Menu()
 
 void Menu::initialize()
 {
+    const fs::path font_path =
+    asset_root() /
+        "fonts" /
+        "Roboto-Regular.ttf";
+
     font_ = TTF_OpenFont(
-        "../assets/fonts/Roboto-Regular.ttf",
+        font_path.string().c_str(),
         12);
 
     if (!font_)
@@ -169,7 +175,7 @@ void Menu::discover_games()
     games_.clear();
 
     const fs::path rom_root =
-        "../assets/roms";
+        asset_root() / "roms";
 
     if (!fs::exists(rom_root))
     {

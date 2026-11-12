@@ -239,7 +239,4 @@ void Frontend::cleanup()
         SDL_DestroyWindow(window_);
         window_ = nullptr;
     }
-    // Shut down SDL subsystems.
-    TTF_Quit();
-    SDL_Quit();
 }
