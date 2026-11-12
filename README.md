@@ -109,3 +109,10 @@ The CPU is checked against four standard 8080 test programs not stored in this r
 | `8080EXM.COM` | Frank D. Cringle and Ian Bartholomew, with pass/fail CRCs added by Mike Douglas (2013) | GPL v2 or later |
 | `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
 | `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
+
+## Third-Party Assets
+
+This project includes the Roboto font.
+
+Roboto is licensed under the SIL Open Font License 1.1.
+See assets/fonts/OFL.txt for details.
