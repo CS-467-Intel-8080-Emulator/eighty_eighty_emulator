@@ -1,9 +1,8 @@
 #include "frontend/main_menu.hpp"
 #include "frontend/run_invaders.hpp"
-#include "platform/cpm_test/run_cpm.hpp"
+#include "frontend/run_cpm.hpp"
 
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h> // Unused here, but must be in main() for Windows/macOS  
 
 #include <cstdio>
 #include <string>
@@ -28,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     // 8080 invaders [ROM_FOLDER]
     if (command == "invaders") {
-        std::string folder = "assets/roms/invaders";
+        std::string folder = DEFAULT_ROM_FOLDER;
         if (argc >= 3) {
             folder = argv[2];
         }

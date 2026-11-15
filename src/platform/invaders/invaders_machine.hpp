@@ -13,6 +13,7 @@
 #include "platform/machine.hpp"
 
 #include "invaders_memory.hpp"
+#include "invaders_rom.hpp"
 #include "video.hpp"
 #include "interrupt_schedule.hpp"
 #include "invaders_io.hpp"
@@ -29,7 +30,8 @@ public:
     int display_height() const override { return Video::SCREEN_HEIGHT; }
     double frames_per_second() const override { return invaders::FRAMES_PER_SECOND; }
 
-    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0);
+    const std::vector<RomFile>& rom_files() const override { return INVADERS_ROM_FILES; }
+    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0) override;
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
 
