@@ -39,20 +39,12 @@ FetchContent_MakeAvailable(SDL3)
 # ===============================================================
 # MAIN PROGRAM
 # ===============================================================
-if(WIN32)
-    set(OS_NAME windows)  # 8080_windows.exe
-elseif(APPLE)
-    set(OS_NAME macos)    # 8080_macos
-else()
-    set(OS_NAME linux)    # 8080_linux
-endif()
 add_executable(8080
     src/main.cpp
     src/frontend/frontend.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
-set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
 install(TARGETS 8080 DESTINATION .)
 
 # ===============================================================
