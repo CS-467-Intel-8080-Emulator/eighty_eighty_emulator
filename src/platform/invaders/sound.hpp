@@ -19,7 +19,7 @@ class InvadersSound {
 public:
     static constexpr int SAMPLE_RATE = 48000;
 
-    // Numbered to match 0.wav-9.wav
+    // WAV file for each sound is in invaders_sound_files.hpp
     enum Sound { UFO, SHOT, PLAYER_DEATH, INVADER_DEATH,
                  FLEET_1, FLEET_2, FLEET_3, FLEET_4, UFO_HIT, EXTRA_LIFE, SOUND_COUNT };
 

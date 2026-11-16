@@ -1,6 +1,8 @@
 // Unit tests for the Space Invaders sound board, using test samples in place of recorded ones.
 
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <cmath>
 #include <cstdint>
 #include <vector>
@@ -9,6 +11,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include "../src/platform/invaders/invaders_machine.hpp"
 #include "../src/platform/invaders/sound.hpp"
 
 using Catch::Matchers::WithinAbs;
@@ -245,4 +248,32 @@ TEST_CASE("Output is clamped to [-1, 1]", "[invaders][sound]") {
     sound.write_port3(0x3F);
     sound.write_port5(0x1F);
     CHECK(peak(sound, LONG) <= 1.0f);
+}
+
+// --- Sound files through the machine interface ---
+
+TEST_CASE("Every sound has exactly one WAV file", "[invaders][sound]") {
+    const std::vector<SoundFile> files = InvadersMachine().sound_files();
+
+    std::array<int, InvadersSound::SOUND_COUNT> files_per_sound{};
+    for (const SoundFile& file : files) {
+        REQUIRE(file.id >= 0);
+        REQUIRE(file.id < InvadersSound::SOUND_COUNT);
+        CHECK(file.samples.empty());
+        files_per_sound[file.id]++;
+    }
+    for (int s = 0; s < InvadersSound::SOUND_COUNT; s++)
+        CHECK(files_per_sound[s] == 1);
+
+    // No two sounds share a file name
+    for (size_t i = 0; i < files.size(); i++)
+        for (size_t j = i + 1; j < files.size(); j++)
+            CHECK(std::strcmp(files[i].name, files[j].name) != 0);
+}
+
+TEST_CASE("Machine loads a sound only for a valid id", "[invaders][sound]") {
+    InvadersMachine machine;
+    CHECK(machine.load_sound(InvadersSound::SHOT, flat()));
+    CHECK_FALSE(machine.load_sound(-1, flat()));
+    CHECK_FALSE(machine.load_sound(InvadersSound::SOUND_COUNT, flat()));
 }

@@ -1,5 +1,6 @@
 #include "src/frontend/audio.hpp"
 #include "src/frontend/frontend.hpp"
+#include "src/frontend/sound_reader.hpp"
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
@@ -8,7 +9,6 @@
 #include <SDL3/SDL_main.h>
 
 #include <exception>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -41,17 +41,12 @@ int main(int argc, char* argv[]) {
             2
         );
 
-        // Missing sound files stay silent
-        const std::string sound_dir = "assets/sounds/invaders/";
-        int samples_loaded = 0;
-        for (int i = 0; i < InvadersSound::SOUND_COUNT; i++) {
-            const std::string path = sound_dir + std::to_string(i) + ".wav";
-            std::vector<float> samples = Audio::load_wav(path.c_str(), machine.audio_sample_rate());
-            samples_loaded += !samples.empty();
-            machine.sound().set_sample(InvadersSound::Sound(i), std::move(samples));
-        }
-        SDL_Log("Loaded %d of %d sound samples from %s",
-                samples_loaded, int(InvadersSound::SOUND_COUNT), sound_dir.c_str());
+        // Read the sound files the machine lists. Missing files stay silent.
+        const char* sound_folder = "assets/sounds/invaders";
+        std::vector<SoundFile> sound_files =
+            read_sound_files(sound_folder, machine.sound_files(), machine.audio_sample_rate());
+        for (SoundFile& sound_file : sound_files)
+            machine.load_sound(sound_file.id, std::move(sound_file.samples));
 
         // Must be destroyed before the frontend calls SDL_Quit
         Audio audio(machine.audio_sample_rate(), [&machine](float* out, int count) {
