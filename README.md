@@ -101,6 +101,8 @@ Extract the executable from the zip file and double-click `8080_windows.exe`.
   ```
 
 # Controls
+Space Invaders controls:
+
 | Key | Control |
 |---|---|
 | `C` | Insert coin |

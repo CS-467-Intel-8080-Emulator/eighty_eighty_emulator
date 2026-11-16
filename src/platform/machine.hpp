@@ -9,18 +9,7 @@
 
 #include <cstdint>
 
-enum class Input {
-    Coin,
-    P1Start,
-    P2Start,
-    P1Left,
-    P1Right,
-    P1Fire,
-    P2Left,
-    P2Right,
-    P2Fire,
-    Tilt,
-};
+enum class Input;
 
 class Machine {
 public:

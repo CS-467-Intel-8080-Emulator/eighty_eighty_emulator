@@ -6,11 +6,9 @@
 #include <functional>
 #include <utility>
 
-#include "platform/machine.hpp"
-
 class Frontend {
 public:
-    using InputHandler = std::function<void(Input input, bool pressed)>;
+    using InputHandler = std::function<void(SDL_Scancode key, bool pressed)>;
     Frontend(const char* title, int w_native, int h_native, double rotation, int scale);
     ~Frontend();
 

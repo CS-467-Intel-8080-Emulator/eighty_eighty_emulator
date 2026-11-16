@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "platform/machine.hpp"
+#include "invaders_controls.hpp"
 
 // DIP switches: on/off switches on the board generally set by arcade technicians
 // DIP switches are read through port 2. These defaults are factory settings

@@ -37,8 +37,13 @@ int main(int argc, char* argv[]) {
             2
         );
 
-        frontend.set_input_handler([&machine](Input input, bool pressed) {
-            machine.set_input(input, pressed);
+        frontend.set_input_handler([&machine](SDL_Scancode key, bool pressed) {
+            for (const KeyBinding& binding : KEY_BINDINGS) {
+                if (SDL_GetScancodeFromName(binding.key) == key) {
+                    machine.set_input(binding.input, pressed);
+                    break;
+                }
+            }
         });
 
         while (frontend.handle_events()) {
