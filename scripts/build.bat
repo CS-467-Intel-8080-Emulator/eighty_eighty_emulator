@@ -1,7 +1,11 @@
 @echo off
 setlocal
 rem ###########################################################################
-rem Configure, build, test, and run 8080 program on Windows
+rem Configure, build, test, and run 8080 program on Windows.
+rem This script was generated with the help of AI (duck.ai with model GPT-6 Luna).
+rem The accompanying transcript documents the GenAI interaction that led to this
+rem script:
+rem https://drive.google.com/file/d/1zb7rj9H_c__12t-J0Ur3wHisPcyrhMm5/view?usp=drive_link
 rem ###########################################################################
 
 rem Collect arguments for 8080; recognize -e as the test option.

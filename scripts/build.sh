@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -e # Stop early if a command fails
 ###############################################################################
-# Configure, build, test, and run 8080 program on Linux or macOS
+# Configure, build, test, and run 8080 program on Linux or macOS.
+# This script was generated with the help of AI (duck.ai with model GPT-6 Luna).
+# The accompanying transcript documents the GenAI interaction that led to this
+# script:
+# https://drive.google.com/file/d/1zb7rj9H_c__12t-J0Ur3wHisPcyrhMm5/view?usp=drive_link
 ###############################################################################
 
 # Collect positional arguments passed to 8080 executable
