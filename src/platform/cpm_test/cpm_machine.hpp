@@ -1,3 +1,7 @@
+// The cpm_machine files were generated with the help of Claude Code.
+// This document summarizes the GenAI usage that led to this code:
+// https://drive.google.com/file/d/1kHRbPPfuhywTTaPXBz7GwhoZSb2PxOZz/view?usp=drive_link
+
 #ifndef CPM_MACHINE_HPP
 #define CPM_MACHINE_HPP
 

@@ -1,6 +1,7 @@
 build/
 CMakePresets.json
-assets/roms/invaders/
-SDL/
+assets/roms/invaders/*
+!assets/roms/invaders/README.md
 assets/sounds/invaders/*
 !assets/sounds/invaders/README.md
+SDL/

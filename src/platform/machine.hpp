@@ -1,3 +1,9 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
+
+
 #ifndef MACHINE_HPP
 #define MACHINE_HPP
 

@@ -53,6 +53,8 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 ```
 
 # Run
+These commands assume you added the Space Invaders ROM files to the
+`assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
 .\build\Release\8080_windows.exe

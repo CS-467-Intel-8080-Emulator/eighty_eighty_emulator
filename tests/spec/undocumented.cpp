@@ -1,3 +1,8 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1V8d23vU7Hn70k1g-T2Y4W6YIvdhIUp16?usp=drive_link
+
 // Undocumented opcodes. The Intel 8080 manual leaves these 12 opcodes out,
 // but the real chip runs each one as a copy of a documented instruction
 // (mapping as in https://pastraiser.com/cpu/i8080/i8080_opcodes.html):

@@ -1,3 +1,8 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1V8d23vU7Hn70k1g-T2Y4W6YIvdhIUp16?usp=drive_link
+
 // Test harness for the 8080 spec suite (tests/spec).
 //
 // A TestMachine is a CPU wired to its own memory and a fake I/O device.
