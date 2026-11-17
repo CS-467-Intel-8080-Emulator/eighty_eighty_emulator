@@ -1,4 +1,12 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
+
 #include "invaders_machine.hpp"
+#include "invaders_sound_files.hpp"
+
+#include <utility>
 
 InvadersMachine::InvadersMachine() {
     cpu_.set_io(&io_);
@@ -6,6 +14,17 @@ InvadersMachine::InvadersMachine() {
 
 bool InvadersMachine::load_rom(const std::vector<uint8_t>& bytes, uint16_t offset) {
     return memory_.load_rom(bytes, offset);
+}
+
+std::vector<SoundFile> InvadersMachine::sound_files() const {
+    return INVADERS_SOUND_FILES;
+}
+
+bool InvadersMachine::load_sound(int id, std::vector<float> samples) {
+    if (id < 0 || id >= InvadersSound::SOUND_COUNT)
+        return false;
+    io_.sound().set_sample(InvadersSound::Sound(id), std::move(samples));
+    return true;
 }
 
 void InvadersMachine::run_frame() {

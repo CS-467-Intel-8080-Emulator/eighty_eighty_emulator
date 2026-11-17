@@ -1,3 +1,8 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1V8d23vU7Hn70k1g-T2Y4W6YIvdhIUp16?usp=drive_link
+
 // Short 8080 programs. Each one uses several instructions together (loops,
 // subroutines, memory, stack, interrupts) and checks the end result, as a
 // check that instructions combine correctly, not only one at a time.

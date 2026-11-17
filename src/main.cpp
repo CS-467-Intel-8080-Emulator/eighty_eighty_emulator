@@ -1,16 +1,23 @@
+#include "src/frontend/audio.hpp"
 #include "src/frontend/frontend.hpp"
+#include "src/frontend/sound_reader.hpp"
+#include "src/frontend/asset_paths.hpp"
+
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
-#include "src/frontend/asset_paths.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <exception>
 #include <string>
+#include <utility>
+#include <vector>
 
-// AI was used to debug the game selection function and clean load/run ROMs function.
+// AI was used to debug the game selection function and clean
+// load/run ROMs function.
 
 int main(int argc, char* argv[])
 {
@@ -22,17 +29,15 @@ int main(int argc, char* argv[])
         // Show ROM selection menu
         // -----------------------------------------------------------------
 
+        // TODO: Menu currently uses Space Invaders display
+        // dimensions. Generalize this when supporting multiple machine types.
         Frontend frontend(
             "8080 Emulator",
             224,
             256,
             0.0,
-            2
-            // TODO: Menu currently uses Space Invaders display
-            // dimensions. Generalize this when supporting multiple machine types.
-        );
+            2);
 
-        // Directory name of the selected ROM set (e.g. "invaders").
         std::string selected_game;
 
         while (frontend.handle_events())
@@ -41,29 +46,22 @@ int main(int argc, char* argv[])
 
             if (frontend.game_selected())
             {
-                selected_game =
-                    frontend.selected_game();
-
+                selected_game = frontend.selected_game();
                 break;
             }
         }
 
         // User closed the window without selecting a ROM.
-        if (selected_game.empty())
+        if (!selected_game.empty())
         {
-            result = 0;
-        }
-        else
-        {
-            // Build the full path to the selected ROM set.
+            // -------------------------------------------------------------
+            // Load selected ROM
+            // -------------------------------------------------------------
+
             const auto rom_path =
                 asset_root() /
                 "roms" /
                 selected_game;
-
-            // -----------------------------------------------------------------
-            // Load selected ROM
-            // -----------------------------------------------------------------
 
             InvadersMachine machine;
 
@@ -90,12 +88,67 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // -----------------------------------------------------------------
-            // Run emulator
-            // -----------------------------------------------------------------
-
             if (result == 0)
             {
+                // ---------------------------------------------------------
+                // Input bindings
+                // ---------------------------------------------------------
+
+                frontend.set_input_handler(
+                    [&machine](SDL_Scancode key, bool pressed)
+                    {
+                        SDL_Log("Received: %s",
+                                SDL_GetScancodeName(key));
+
+                        for (const KeyBinding& binding : KEY_BINDINGS)
+                        {
+                            if (SDL_GetScancodeFromName(binding.key) == key)
+                            {
+                                SDL_Log("Matched binding: %s", binding.key);
+
+                                machine.set_input(
+                                    binding.input,
+                                    pressed);
+
+                                break;
+                            }
+                        }
+                    });
+
+                // ---------------------------------------------------------
+                // Audio
+                // ---------------------------------------------------------
+
+                const auto sound_path =
+                    asset_root() /
+                    "sounds" /
+                    "invaders";
+
+                std::vector<SoundFile> sound_files =
+                    read_sound_files(
+                        sound_path.string().c_str(),
+                        machine.sound_files(),
+                        machine.audio_sample_rate());
+
+                for (SoundFile& sound_file : sound_files)
+                {
+                    machine.load_sound(
+                        sound_file.id,
+                        std::move(sound_file.samples));
+                }
+
+                // Must be destroyed before SDL subsystems shut down.
+                Audio audio(
+                    machine.audio_sample_rate(),
+                    [&machine](float* out, int count)
+                    {
+                        machine.render_audio(out, count);
+                    });
+
+                // ---------------------------------------------------------
+                // Run emulator
+                // ---------------------------------------------------------
+
                 while (frontend.handle_events())
                 {
                     machine.run_frame();

@@ -69,6 +69,8 @@ add_executable(8080
     src/frontend/frontend.cpp
     src/frontend/menu.cpp
     src/frontend/asset_paths.cpp
+    src/frontend/audio.cpp
+    src/frontend/sound_reader.cpp
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)

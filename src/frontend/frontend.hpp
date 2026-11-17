@@ -5,7 +5,9 @@
 #include <SDL3/SDL.h>
 
 #include <cstdint>
+#include <functional>
 #include <string>
+#include <utility>
 
 // ======================================================
 // Frontend
@@ -13,6 +15,8 @@
 // Manages SDL initialization, rendering, user input, and the ROM selection menu.
 class Frontend {
 public:
+    using InputHandler =
+        std::function<void(SDL_Scancode key, bool pressed)>;
 
     // --------------------------------------------------
     // Construction and Cleanup
@@ -33,6 +37,7 @@ public:
     // Input and Rendering
     // --------------------------------------------------
 
+    void set_input_handler(InputHandler handler) { input_handler_ = std::move(handler); }
     bool handle_events();
 
     void present(const uint32_t* pixels);
@@ -54,6 +59,7 @@ private:
     void cleanup();
 
     // SDL rendering resources.
+    InputHandler input_handler_;
     SDL_Window* window_{ nullptr };
     SDL_Renderer* renderer_{ nullptr };
     SDL_Texture* texture_{ nullptr };

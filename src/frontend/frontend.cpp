@@ -40,7 +40,7 @@ Frontend::Frontend(const char* title,
     dst_.y =
         (h_logical - dst_.h) / 2.0f;
     
-        // Initialize SDL video support.
+    // Initialize SDL video support.
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         throw std::runtime_error(
@@ -151,6 +151,12 @@ bool Frontend::handle_events()
         }
 
         menu_.handle_input(event);
+
+        // send key press/release input to the input handler
+        if ((event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) && input_handler_)
+        {
+            input_handler_(event.key.scancode, event.type == SDL_EVENT_KEY_DOWN);
+        }
     }
 
     return true;

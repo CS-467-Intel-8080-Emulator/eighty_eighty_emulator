@@ -1,3 +1,8 @@
+// This code was generated with the help of Claude (Claude Code, model Claude
+// Opus 5.5). The accompanying transcripts document the GenAI interaction that
+// led to my code.
+// https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
+
 #ifndef INVADERS_MEMORY_HPP
 #define INVADERS_MEMORY_HPP
 
@@ -20,6 +25,8 @@ For this particular hardware platform, the CPU's address pin 15 is unconnected;
 pin 14 is technically connected to allow addressing for an additional ROM slot
 at 0x4000-0x5FFF; however this slot is not used for Space Invaders, so in this
 case for anything above 0x3FFF we just mask off those top two bits.
+
+See MAME: https://raw.githubusercontent.com/mamedev/mame/master/src/mame/midw8080/mw8080bw.cpp
 
     0x4000-0xFFFF       ROM/RAM "mirrors" (masked off with 0x3FFF)
 */
