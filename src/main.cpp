@@ -41,6 +41,15 @@ int main(int argc, char* argv[]) {
             2
         );
 
+        frontend.set_input_handler([&machine](SDL_Scancode key, bool pressed) {
+            for (const KeyBinding& binding : KEY_BINDINGS) {
+                if (SDL_GetScancodeFromName(binding.key) == key) {
+                    machine.set_input(binding.input, pressed);
+                    break;
+                }
+            }
+        });
+
         // Read the sound files the machine lists. Missing files stay silent.
         const char* sound_folder = "assets/sounds/invaders";
         std::vector<SoundFile> sound_files =

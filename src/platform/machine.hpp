@@ -13,6 +13,7 @@
 
 #include "platform/sound_file.hpp"
 
+enum class Input;
 
 class Machine {
 public:
@@ -25,6 +26,9 @@ public:
 
     virtual void run_frame() = 0;
     virtual const uint32_t* pixels() const = 0;
+
+    // press or release controls
+    virtual void set_input(Input /*input*/, bool /*pressed*/) {}
 
     // Sample rate 0 means no audio
     virtual int audio_sample_rate() const { return 0; }
