@@ -5,15 +5,16 @@
 
 # Eighty Eighty Emulator C++ Style Guide
 
-> **Status: Draft.** All standards subject to team discussion. Tooling has not
-> yet been implemented, and existing code has not been updated according to
-> these conventions.
+> **Status: Initial version.** All standards subject to team discussion. Tooling
+> has not yet been implemented, and existing code has not been updated according
+> to these conventions.
 
 This style guide is based on
 [Google C++ Style](https://google.github.io/styleguide/cppguide.html), adjusted
-to match the conventions this team already uses. Formatting rules
-(indentation, braces, spacing, includes) are enforced by `clang-format`. Naming,
-semantics, and architectural organization are enforced in code review.
+to match the conventions this team already uses. Formatting rules (indentation,
+braces, spacing, includes) will be automatically enforced by `clang-format` for
+new code modifications (TODO). Naming, semantics, and architectural organization
+are enforced in code review.
 
 ## Files
 
@@ -67,13 +68,13 @@ line between groups, sorted alphabetically within each group:
 - Write project include paths relative to `src/` (`"core/cpu.hpp"`), not with
   `../` or a leading `src/`. A file may include a header from its own directory
   by name alone (`"timing.hpp"`).
-- Include all headers/libraries explicitly rather than relying on cascading includes.
+- Include all headers/libraries explicitly rather than relying on cascading
+  includes.
 
 ## Formatting
 
 - Indent using 4 spaces.
-- Aim for line length of around 80 characters with a maximum of 100; exceed this
-  limit only when necessary.
+- Aim for a line length of 80 characters with a maximum of 100.
 - Opening braces go on the same line as the statement, function, or class:
 
     ```cpp
@@ -82,13 +83,19 @@ line between groups, sorted alphabetically within each group:
     }
     ```
 
-- Braces may be omitted for single-line bodies of `if`, `for`, and `while`
-  statements.
-- `return` statements should be placed on their own lines except in the case of
-  single-line function definitions which may be placed inline.
+- Prefer braces for all control statement bodies, and place bodies on their own
+  lines (not automatically enforced by `clang-format`):
 
     ```cpp
-    const char* title() const override { return "Space Invaders"; }`
+    if (cycles >= max_cycles) {
+        return false;
+    }
+    ```
+
+    Short functions defined inside a class may be written inline:
+
+    ```cpp
+    const char* get_title() const override { return "Space Invaders"; }
     ```
 
 - Place one space after control keywords: `if (x)`, not `if(x)`.
@@ -97,17 +104,19 @@ line between groups, sorted alphabetically within each group:
 
 ## Naming
 
-| Token                                   | Style                               | Example                            |
-| --------------------------------------- | ----------------------------------- | ---------------------------------- |
-| Types (classes, structs, enums)         | `PascalCase`                        | `ShiftRegister`, `InvadersMachine` |
-| Functions and methods                   | `snake_case`                        | `push_word`, `read_byte`           |
-| Variables and parameters                | `snake_case`                        | `frame_cycles`, `addr`             |
-| Private data members                    | `snake_case_` (trailing underscore) | `renderer_`, `cpu_`                |
-| Public struct fields                    | `snake_case`                        | `RomFile::name`                    |
-| Constants (`constexpr`, `static const`) | `UPPER_SNAKE_CASE`                  | `CYCLES_PER_FRAME`, `FLAG_CARRY`   |
-| Namespaces                              | `snake_case`                        | `invaders`, `spec`                 |
+| Token                                   | Style                               | Example                                    |
+| --------------------------------------- | ----------------------------------- | ------------------------------------------ |
+| Types (classes, structs, enums)         | `PascalCase`                        | `ShiftRegister`, `Video`, `CPU`            |
+| Functions and methods                   | `snake_case`                        | `return_to_caller`, `push_word`, `cleanup` |
+| Variables and parameters                | `snake_case`                        | `frame_cycles`, `video_y`, `addr`          |
+| Private data members                    | `snake_case_` (trailing underscore) | `pending_rst_`, `cpu_`                     |
+| Public struct fields                    | `snake_case`                        | `Condition::if_set`, `ROMFile::name`       |
+| Constants (`constexpr`, `static const`) | `UPPER_SNAKE_CASE`                  | `CYCLES_PER_FRAME`, `RAM_START`, `ORIGIN`  |
+| Namespaces                              | `snake_case`                        | `space_invaders`, `spec`, `fs`             |
 
 - Put acronyms in type names in all-caps: `CPU`, `IOBus`, `InvadersIO`.
+- Name getters and setters after the property using `get_<property>` and
+  `set_<property>`: `get_flag`, `set_flag`.
 
 ## Comments and documentation
 
