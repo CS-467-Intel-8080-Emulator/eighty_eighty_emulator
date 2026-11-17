@@ -48,6 +48,10 @@ bool Frontend::handle_events() {
 
         if (event.type == SDL_EVENT_KEY_DOWN && event.key.scancode == SDL_SCANCODE_ESCAPE)
             return false;
+
+        // send key press/release input to the input handler
+        if ((event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) && input_handler_)
+            input_handler_(event.key.scancode, event.type == SDL_EVENT_KEY_DOWN);
     }
 
     return true;

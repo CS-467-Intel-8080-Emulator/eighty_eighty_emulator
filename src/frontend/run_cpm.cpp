@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "run_cpm.hpp"
-#include "platform/cpm_test/cpm_machine.hpp"`
+#include "platform/cpm_test/cpm_machine.hpp"
 
 // Runs a CP/M test program in the terminal.
 int run_cpm_test(const std::string &test_path) {

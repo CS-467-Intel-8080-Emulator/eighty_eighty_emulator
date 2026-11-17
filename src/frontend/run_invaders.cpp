@@ -2,12 +2,15 @@
 #include "platform/invaders/invaders_machine.hpp"
 #include "rom/rom_reader.hpp"
 #include "run_invaders.hpp"
+#include "src/frontend/audio.hpp"
+#include "src/frontend/sound_reader.hpp"
 
 #include <SDL3/SDL.h>
 
 #include <exception>
 #include <string>
 #include <vector>
+#include <utility>
 
 // Run Space Invaders by loading the ROMS in `folder`
 int run_invaders(const std::string& folder) {
@@ -34,6 +37,27 @@ int run_invaders(const std::string& folder) {
             0.0, // TODO: Remove rotation; let video layer handle it
             2
         );
+
+        frontend.set_input_handler([&machine](SDL_Scancode key, bool pressed) {
+            for (const KeyBinding& binding : KEY_BINDINGS) {
+                if (SDL_GetScancodeFromName(binding.key) == key) {
+                    machine.set_input(binding.input, pressed);
+                    break;
+                }
+            }
+        });
+
+        // Read the sound files the machine lists. Missing files stay silent.
+        const char* sound_folder = "assets/sounds/invaders";
+        std::vector<SoundFile> sound_files =
+            read_sound_files(sound_folder, machine.sound_files(), machine.audio_sample_rate());
+        for (SoundFile& sound_file : sound_files)
+            machine.load_sound(sound_file.id, std::move(sound_file.samples));
+
+        // Must be destroyed before the frontend calls SDL_Quit
+        Audio audio(machine.audio_sample_rate(), [&machine](float* out, int count) {
+            machine.render_audio(out, count);
+        });
 
         while (frontend.handle_events()) {
             machine.run_frame();
