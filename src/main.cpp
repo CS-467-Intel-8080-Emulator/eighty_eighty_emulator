@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
                     break;
                 }
             }
+        });
 
         // Read the sound files the machine lists. Missing files stay silent.
         const char* sound_folder = "assets/sounds/invaders";
