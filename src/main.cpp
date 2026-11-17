@@ -1,4 +1,6 @@
+#include "src/frontend/audio.hpp"
 #include "src/frontend/frontend.hpp"
+#include "src/frontend/sound_reader.hpp"
 #include "platform/invaders/invaders_machine.hpp"
 #include "platform/invaders/invaders_rom.hpp"
 #include "rom/rom_reader.hpp"
@@ -7,6 +9,8 @@
 #include <SDL3/SDL_main.h>
 
 #include <exception>
+#include <utility>
+#include <vector>
 
 int main(int argc, char* argv[]) {
 
@@ -44,6 +48,17 @@ int main(int argc, char* argv[]) {
                     break;
                 }
             }
+
+        // Read the sound files the machine lists. Missing files stay silent.
+        const char* sound_folder = "assets/sounds/invaders";
+        std::vector<SoundFile> sound_files =
+            read_sound_files(sound_folder, machine.sound_files(), machine.audio_sample_rate());
+        for (SoundFile& sound_file : sound_files)
+            machine.load_sound(sound_file.id, std::move(sound_file.samples));
+
+        // Must be destroyed before the frontend calls SDL_Quit
+        Audio audio(machine.audio_sample_rate(), [&machine](float* out, int count) {
+            machine.render_audio(out, count);
         });
 
         while (frontend.handle_events()) {

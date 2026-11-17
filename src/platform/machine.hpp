@@ -7,7 +7,11 @@
 #ifndef MACHINE_HPP
 #define MACHINE_HPP
 
+#include <algorithm>
 #include <cstdint>
+#include <vector>
+
+#include "platform/sound_file.hpp"
 
 enum class Input;
 
@@ -25,6 +29,14 @@ public:
 
     // press or release controls
     virtual void set_input(Input /*input*/, bool /*pressed*/) {}
+
+    // Sample rate 0 means no audio
+    virtual int audio_sample_rate() const { return 0; }
+    virtual void render_audio(float* out, int count) { std::fill(out, out + count, 0.0f); }
+
+    // Sound files this machine wants, and where each one goes once read
+    virtual std::vector<SoundFile> sound_files() const { return {}; }
+    virtual bool load_sound(int /*id*/, std::vector<float> /*samples*/) { return false; }
 };
 
 #endif
