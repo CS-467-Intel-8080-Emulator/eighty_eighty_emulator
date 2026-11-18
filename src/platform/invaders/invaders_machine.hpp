@@ -44,7 +44,14 @@ private:
     InterruptSchedule schedule_;
     Video video_;
 
-    static constexpr std::size_t STATE_SIZE = 8216; // Total size of serialized Invaders machine state in bytes
+    static constexpr std::size_t STATE_SIZE
+        = 7    // CPU: 6 registers + accumulator
+        + 4    // CPU: PC + SP
+        + 1    // CPU: Flags
+        + 3    // CPU: interrupts_enabled (u8) + ei_pending (u8) + halted (u8)
+        + 8192 // Memory: 8K RAM/VRAM
+        + 3    // Shift register: value_ (u16) + offset_ (u8)
+        + 6;   // Interrupt schedule: frame_cycles_ (u32) + mid_screen_raised_ (u8) + pending_rst_ (u8)
 };
 
 #endif

@@ -3,6 +3,12 @@
 // led to my code.
 // https://drive.google.com/drive/folders/14UFLJnbF9rFUq6pEIBuArmQJAz6fYccr?usp=drive_link
 
+// Note: The current implementation of state files includes no header or version
+// number; recorded data is just raw values in the order that the machine saved
+// them. Changing what values the machine saves or loads (including adding,
+// removing, reordering, or resizing fields) will render previously saved state
+// files incompatible.
+
 #ifndef STATE_HPP
 #define STATE_HPP
 
@@ -31,6 +37,8 @@ public:
     uint8_t load_u8();
     uint16_t load_u16();
     uint32_t load_u32();
+
+    std::size_t position() const { return position_; }
 
     void set_buffer(const std::vector<uint8_t>& buffer) {
         buffer_ = buffer;
