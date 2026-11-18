@@ -3,7 +3,8 @@
 
 #include <string>
 
-const std::string DEFAULT_ROM_FOLDER = "assets/roms/invaders";
+// Run Space Invaders from the ROMs in `folder`.
+// An empty `folder` means the default, assets/roms/invaders.
 int run_invaders(const std::string& folder);
 
 #endif

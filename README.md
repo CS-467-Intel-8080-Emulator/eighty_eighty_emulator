@@ -50,9 +50,8 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 
 # Run
 
-## Run Space Invaders from Default ROM Folder
-To run Space Invaders from the default ROM folder, call the `8080` executable with no arguments. These commands assume you added the Space Invaders ROM files to the
-`assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
+## Run Emulator Menu
+To open the emulator menu, call the `8080` executable with no arguments. When the menu opens, press **Enter** to launch Space Invaders (our only game at the moment). The following commands assume you added the Space Invaders ROM files to the `assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
 .\build\Release\8080_windows.exe
@@ -64,8 +63,8 @@ To run Space Invaders from the default ROM folder, call the `8080` executable wi
 ./build/8080_linux
 ```
 
-## Run Space Invaders from Specified ROM Folder
-To specify a ROM folder, use the `8080 invaders ROM_FOLDER` syntax:
+## Run Space Invaders Directly
+To bypass the menu and run Space Invaders directly, call `8080 invaders`. To specify a non-default ROM folder, call `8080 invaders [ROM_FOLDER]`:
 ```sh
 # Windows
 .\build\Release\8080_windows.exe invaders /path/to/rom/folder
@@ -159,3 +158,10 @@ The CPU is checked against four standard 8080 test programs not stored in this r
 | `8080EXM.COM` | Frank D. Cringle and Ian Bartholomew, with pass/fail CRCs added by Mike Douglas (2013) | GPL v2 or later |
 | `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
 | `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
+
+## Third-Party Assets
+
+This project includes the Roboto font.
+
+Roboto is licensed under the SIL Open Font License 1.1.
+See [assets/fonts/OFL.txt](assets/fonts/OFL.txt) for details.
