@@ -11,6 +11,9 @@
 #include <cstdint>
 #include <vector>
 
+class StateWriter;
+class StateReader;
+
 // Space Invaders sound board. Each bit of OUT 3 and OUT 5 turns on one sound:
 //   OUT 3: 0 UFO, 1 shot, 2 player death, 3 invader death, 4 extra life, 5 amp enable
 //   OUT 5: 0-3 fleet movement, 4 UFO hit
@@ -36,6 +39,10 @@ public:
 
     // Audio thread
     void render(float* out, int count);
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     // Port 3 bits

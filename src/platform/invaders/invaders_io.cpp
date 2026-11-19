@@ -24,8 +24,10 @@ void InvadersIO::out(uint8_t port, uint8_t value) {
 
 void InvadersIO::save_state(StateWriter& writer) const {
     shift_.save_state(writer);
+    sound_.save_state(writer);
 }
 
 void InvadersIO::load_state(StateReader& reader) {
     shift_.load_state(reader);
+    sound_.load_state(reader);
 }

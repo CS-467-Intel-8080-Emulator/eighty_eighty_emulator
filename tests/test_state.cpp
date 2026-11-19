@@ -243,7 +243,7 @@ static const Bytes TEST_ROM = [] {
 
 TEST_CASE("Machine save is the expected size", "[state][invaders][machine]") {
     InvadersMachine machine;
-    CHECK(machine.save_state().size() == 8216);
+    CHECK(machine.save_state().size() == 8218);
 }
 
 TEST_CASE("Machine load restores the exact saved state", "[state][invaders][machine]") {

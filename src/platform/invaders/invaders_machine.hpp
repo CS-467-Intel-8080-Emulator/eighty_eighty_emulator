@@ -63,6 +63,7 @@ private:
         + 3    // CPU: interrupts_enabled (u8) + ei_pending (u8) + halted (u8)
         + 8192 // Memory: 8K RAM/VRAM
         + 3    // Shift register: value_ (u16) + offset_ (u8)
+        + 2    // Sound board: port3_ (u8) + port5_ (u8)
         + 6;   // Interrupt schedule: frame_cycles_ (u32) + mid_screen_raised_ (u8) + pending_rst_ (u8)
 };
 
