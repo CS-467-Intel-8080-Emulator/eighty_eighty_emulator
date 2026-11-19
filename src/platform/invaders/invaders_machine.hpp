@@ -13,6 +13,7 @@
 #include "platform/machine.hpp"
 
 #include "invaders_memory.hpp"
+#include "invaders_rom.hpp"
 #include "video.hpp"
 #include "interrupt_schedule.hpp"
 #include "invaders_io.hpp"
@@ -29,9 +30,20 @@ public:
     int display_height() const override { return Video::SCREEN_HEIGHT; }
     double frames_per_second() const override { return invaders::FRAMES_PER_SECOND; }
 
-    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0);
+    const std::vector<RomFile>& rom_files() const override { return INVADERS_ROM_FILES; }
+    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0) override;
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
+
+    void set_input(Input input, bool pressed) override { io_.inputs().set(input, pressed); }
+    // These should be set before running, the game reads these at startup
+    // Returns false and changes nothing if the settings are invalid
+    bool set_dips(const DipSwitches& dips) { return io_.inputs().set_dips(dips); }
+
+    int audio_sample_rate() const override { return InvadersSound::SAMPLE_RATE; }
+    void render_audio(float* out, int count) override { io_.sound().render(out, count); }
+    std::vector<SoundFile> sound_files() const override;
+    bool load_sound(int id, std::vector<float> samples) override;
 
     // Save and load machine state
     std::vector<uint8_t> save_state() const override;

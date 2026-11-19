@@ -1,72 +1,58 @@
-#include "src/frontend/frontend.hpp"
-#include "platform/invaders/invaders_machine.hpp"
-#include "platform/invaders/invaders_rom.hpp"
-#include "rom/rom_reader.hpp"
-#include "state/state.hpp"
+#include "frontend/run_invaders.hpp"
+#include "frontend/run_cpm.hpp"
+#include "frontend/run_menu.hpp"
 
+#include <SDL3/SDL_main.h> // Unused here, but must be in main() for Windows/macOS
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
-#include <exception>
+#include <cstdio>
+#include <string>
+
+
+static void print_usage(const char* program) {
+    std::printf("Usage:\n");
+    std::printf("  %s                        Open the emulator menu and select a game\n", program);
+    std::printf("  %s invaders [ROM_FOLDER]  Play Space Invaders directly from default or specified ROM folder\n", program);
+    std::printf("  %s cpm_test TESTPROG.COM  Run a CP/M test program, such as a CPU test ROM\n", program);
+}
 
 int main(int argc, char* argv[]) {
 
-    // Read folder name
-    const char* folder = (argc >= 2) ? argv[1] : "assets/roms/invaders";
+    std::string command = argc > 1 ? argv[1] : "";
+    int result = 1;
 
-    try {
-        InvadersMachine machine;
-
-        // Read the Space Invaders ROM files listed in platform/invaders/invaders_rom.hpp
-        // TODO: Get the list from the machine (e.g., machine.rom_files())
-        std::vector<RomFile> rom_files = read_rom_files(folder, INVADERS_ROM_FILES);
-
-        // Load each file's bytes into memory at its designated address
-        for (const RomFile& rom_file : rom_files) {
-            bool is_loaded = machine.load_rom(rom_file.bytes, rom_file.address);
-            if (!is_loaded) {
-                SDL_Log("ROM file doesn't fit in memory: %s", rom_file.name);
-                return 1;
-            }
-        }
-
-        // TODO: Get state file from arg input or user input
-        const std::string state_file = "states/invaders.autosave.state";
-
-        // Load machine state from file if it exists; on failure, start fresh
-        try {
-            if (machine.load_state(StateFile::read(state_file)))
-                SDL_Log("Loaded save state: %s", state_file.c_str());
-            else
-                SDL_Log("Failed to load save state (Wrong size): %s", state_file.c_str());
-        } catch (const std::exception& e) {
-            SDL_Log("Failed to load save state. %s", e.what());
-        }
-
-        Frontend frontend(
-            machine.title(),
-            machine.display_width(),
-            machine.display_height(),
-            0.0, // TODO: Remove rotation; let video layer handle it
-            2
-        );
-
-        while (frontend.handle_events()) {
-            machine.run_frame();
-            frontend.present(machine.pixels());
-        }
-
-        // Autosave machine state on exit
-        try {
-            StateFile::write(state_file, machine.save_state());
-            SDL_Log("Created save state: %s", state_file.c_str());
-        } catch (const std::exception& e) {
-            SDL_Log("Failed to create save state. %s", e.what());
-        }
-    } catch (const std::exception& e) {
-        SDL_Log("%s", e.what());
-        return 1;
+    // 8080
+    if (argc < 2) {
+        result = run_menu();
     }
 
-    return 0;
+    // 8080 invaders [ROM_FOLDER]
+    else if (command == "invaders") {
+        std::string folder = ""; // Default folder used
+        if (argc >= 3) {
+            folder = argv[2];
+        }
+        result = run_invaders(folder);
+    }
+
+    // 8080 cpm_test TESTPROG.COM
+    else if (command == "cpm_test") {
+        if (argc < 3) {
+            std::printf("Usage: %s cpm_test TESTPROG.COM\n", argv[0]);
+        } else {
+            std::string test_path = argv[2];
+            result = run_cpm_test(test_path);
+        }
+    }
+
+    // Unknown command
+    else {
+        print_usage(argv[0]);
+    }
+
+    // Window cleanup
+    TTF_Quit();
+    SDL_Quit();
+    return result;
 }
