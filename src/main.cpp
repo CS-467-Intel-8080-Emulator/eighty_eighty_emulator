@@ -1,170 +1,58 @@
-#include "src/frontend/audio.hpp"
-#include "src/frontend/frontend.hpp"
-#include "src/frontend/sound_reader.hpp"
-#include "src/frontend/asset_paths.hpp"
+#include "frontend/run_invaders.hpp"
+#include "frontend/run_cpm.hpp"
+#include "frontend/run_menu.hpp"
 
-#include "platform/invaders/invaders_machine.hpp"
-#include "platform/invaders/invaders_rom.hpp"
-#include "rom/rom_reader.hpp"
-
+#include <SDL3/SDL_main.h> // Unused here, but must be in main() for Windows/macOS
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include <exception>
+#include <cstdio>
 #include <string>
-#include <utility>
-#include <vector>
 
-// AI was used to debug the game selection function and clean
-// load/run ROMs function.
 
-int main(int argc, char* argv[])
-{
-    int result = 0;
+static void print_usage(const char* program) {
+    std::printf("Usage:\n");
+    std::printf("  %s                        Open the emulator menu and select a game\n", program);
+    std::printf("  %s invaders [ROM_FOLDER]  Play Space Invaders directly from default or specified ROM folder\n", program);
+    std::printf("  %s cpm_test TESTPROG.COM  Run a CP/M test program, such as a CPU test ROM\n", program);
+}
 
-    try
-    {
-        // -----------------------------------------------------------------
-        // Show ROM selection menu
-        // -----------------------------------------------------------------
+int main(int argc, char* argv[]) {
 
-        // TODO: Menu currently uses Space Invaders display
-        // dimensions. Generalize this when supporting multiple machine types.
-        Frontend frontend(
-            "8080 Emulator",
-            224,
-            256,
-            0.0,
-            2);
+    std::string command = argc > 1 ? argv[1] : "";
+    int result = 1;
 
-        std::string selected_game;
-
-        while (frontend.handle_events())
-        {
-            frontend.render_menu();
-
-            if (frontend.game_selected())
-            {
-                selected_game = frontend.selected_game();
-                break;
-            }
-        }
-
-        // User closed the window without selecting a ROM.
-        if (!selected_game.empty())
-        {
-            // -------------------------------------------------------------
-            // Load selected ROM
-            // -------------------------------------------------------------
-
-            const auto rom_path =
-                asset_root() /
-                "roms" /
-                selected_game;
-
-            InvadersMachine machine;
-
-            std::vector<RomFile> rom_files =
-                read_rom_files(
-                    rom_path.string().c_str(),
-                    INVADERS_ROM_FILES);
-
-            for (const RomFile& rom_file : rom_files)
-            {
-                bool is_loaded =
-                    machine.load_rom(
-                        rom_file.bytes,
-                        rom_file.address);
-
-                if (!is_loaded)
-                {
-                    SDL_Log(
-                        "ROM file doesn't fit in memory: %s",
-                        rom_file.name);
-
-                    result = 1;
-                    break;
-                }
-            }
-
-            if (result == 0)
-            {
-                // ---------------------------------------------------------
-                // Input bindings
-                // ---------------------------------------------------------
-
-                frontend.set_input_handler(
-                    [&machine](SDL_Scancode key, bool pressed)
-                    {
-                        SDL_Log("Received: %s",
-                                SDL_GetScancodeName(key));
-
-                        for (const KeyBinding& binding : KEY_BINDINGS)
-                        {
-                            if (SDL_GetScancodeFromName(binding.key) == key)
-                            {
-                                SDL_Log("Matched binding: %s", binding.key);
-
-                                machine.set_input(
-                                    binding.input,
-                                    pressed);
-
-                                break;
-                            }
-                        }
-                    });
-
-                // ---------------------------------------------------------
-                // Audio
-                // ---------------------------------------------------------
-
-                const auto sound_path =
-                    asset_root() /
-                    "sounds" /
-                    "invaders";
-
-                std::vector<SoundFile> sound_files =
-                    read_sound_files(
-                        sound_path.string().c_str(),
-                        machine.sound_files(),
-                        machine.audio_sample_rate());
-
-                for (SoundFile& sound_file : sound_files)
-                {
-                    machine.load_sound(
-                        sound_file.id,
-                        std::move(sound_file.samples));
-                }
-
-                // Must be destroyed before SDL subsystems shut down.
-                Audio audio(
-                    machine.audio_sample_rate(),
-                    [&machine](float* out, int count)
-                    {
-                        machine.render_audio(out, count);
-                    });
-
-                // ---------------------------------------------------------
-                // Run emulator
-                // ---------------------------------------------------------
-
-                while (frontend.handle_events())
-                {
-                    machine.run_frame();
-                    frontend.present(machine.pixels());
-                }
-            }
-        }
-    }
-    catch (const std::exception& e)
-    {
-        SDL_Log("%s", e.what());
-        result = 1;
+    // 8080
+    if (argc < 2) {
+        result = run_menu();
     }
 
+    // 8080 invaders [ROM_FOLDER]
+    else if (command == "invaders") {
+        std::string folder = ""; // Default folder used
+        if (argc >= 3) {
+            folder = argv[2];
+        }
+        result = run_invaders(folder);
+    }
+
+    // 8080 cpm_test TESTPROG.COM
+    else if (command == "cpm_test") {
+        if (argc < 3) {
+            std::printf("Usage: %s cpm_test TESTPROG.COM\n", argv[0]);
+        } else {
+            std::string test_path = argv[2];
+            result = run_cpm_test(test_path);
+        }
+    }
+
+    // Unknown command
+    else {
+        print_usage(argv[0]);
+    }
+
+    // Window cleanup
     TTF_Quit();
     SDL_Quit();
-
     return result;
 }

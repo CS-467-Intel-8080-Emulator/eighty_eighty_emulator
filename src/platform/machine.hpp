@@ -12,7 +12,9 @@
 #include <vector>
 
 #include "platform/sound_file.hpp"
+#include <vector>
 
+#include "rom/rom_reader.hpp"
 enum class Input;
 
 class Machine {
@@ -23,6 +25,9 @@ public:
     virtual int display_width() const = 0;
     virtual int display_height() const = 0;
     virtual double frames_per_second() const = 0;
+
+    virtual const std::vector<RomFile>& rom_files() const = 0;
+    virtual bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset) = 0;
 
     virtual void run_frame() = 0;
     virtual const uint32_t* pixels() const = 0;
