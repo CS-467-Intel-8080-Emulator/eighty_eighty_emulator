@@ -35,12 +35,7 @@ if [ "$HELP" = true ]; then
 fi
 
 # Step 1: Configure
-if [ ! -d build ]; then
-    echo "Build folder does not exist. Configuring build."
-    cmake -B build -DCMAKE_BUILD_TYPE=Release
-else
-    echo "Build folder exists. Skipping build configuration."
-fi
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 # Step 2: Build
 cmake --build build --config Release --parallel

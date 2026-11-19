@@ -64,7 +64,7 @@ add_executable(8080
     ${FRONTEND_SOURCES}
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
+target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 install(TARGETS 8080 DESTINATION .)
 
 # ===============================================================

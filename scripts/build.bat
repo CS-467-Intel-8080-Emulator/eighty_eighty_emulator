@@ -45,13 +45,8 @@ if "%HELP%"=="1" (
 )
 
 rem Step 1: Configure
-if not exist build (
-    echo Build folder does not exist. Configuring build.
-    cmake -B build -DCMAKE_BUILD_TYPE=Release
-    if errorlevel 1 exit /b 1
-) else (
-    echo Build folder exists. Skipping build configuration.
-)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+if errorlevel 1 exit /b 1
 
 rem Step 2: Build
 cmake --build build --config Release --parallel

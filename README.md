@@ -33,7 +33,7 @@ To run individual steps, see the subsequent sections.
 # Build
 Create build config folder. This step is required only on the first build or any time you delete the `build` folder. `-DCMAKE_BUILD_TYPE=Release` configures optimized builds on Linux/macOS (ignored on Windows).
 ```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 ```
 
 Build the project. `--config Release` configures optimized builds on Windows (ignored on Linux/macOS).
