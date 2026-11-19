@@ -60,15 +60,12 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex TST8080 # instant
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex CPUTEST # < 1s
 ctest --test-dir build --build-config Release --output-on-failure --tests-regex 8080EXM # ~30s
-
-# Run test ROMs directly
-.\build\Release\cpm_test.exe build\test_roms\TST8080.COM # Windows
-./build/cpm_test build/test_roms/TST8080.COM # Linux/macOS
 ```
 
 # Run
-These commands assume you added the Space Invaders ROM files to the
-`assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
+
+## Run Emulator Menu
+To open the emulator menu, call the `8080` executable with no arguments. When the menu opens, press **Enter** to launch Space Invaders (our only game at the moment). The following commands assume you added the Space Invaders ROM files to the `assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
 .\build\Release\8080.exe
@@ -76,6 +73,46 @@ These commands assume you added the Space Invaders ROM files to the
 # macOS/Linux
 ./build/8080
 ```
+
+## Run Space Invaders Directly
+To bypass the menu and run Space Invaders directly, call `8080 invaders`. To specify a non-default ROM folder, call `8080 invaders [ROM_FOLDER]`:
+```sh
+# Windows
+.\build\Release\8080_windows.exe invaders /path/to/rom/folder
+
+# macOS
+./build/8080_macos invaders /path/to/rom/folder
+
+# Linux
+./build/8080_linux invaders /path/to/rom/folder
+```
+
+## Run CP/M Tests Directly
+To run CP/M tests, use the `8080 cpm_test TESTPROG.COM` syntax. For example:
+```sh
+# Windows
+.\build\Release\8080_windows.exe cpm_test build\test_roms\TST8080.COM
+
+# Linux
+./build/8080_linux cpm_test build/test_roms/TST8080.COM
+
+# macOS
+./build/8080_macos cpm_test build/test_roms/TST8080.COM
+```
+
+## Get Help
+To get help using `8080`, use the `8080 help` syntax.
+```sh
+# Windows
+.\build\Release\8080_windows.exe help
+
+# Linux
+./build/8080_linux help
+
+# macOS
+./build/8080_macos help
+```
+Optional: for sound, put the Space Invaders WAV files in `assets/sounds/invaders`, relative to where you run the emulator. See [its README](assets/sounds/invaders/README.md) for the file names. Without them, the game runs silently.
 
 # Download and Run Generated Builds
 Select a recent successful build from the [GitHub Actions](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions) page, and under **Artifacts** at the bottom, download the zip file for your platform: 
@@ -110,6 +147,18 @@ Extract the executable from the `8080_windows.zip` file and double-click `8080.e
   chmod +x 8080
   ```
 
+# Controls
+Space Invaders controls:
+
+| Key | Control |
+|---|---|
+| `C` | Insert coin |
+| `1` / `2` | 1-player / 2-player start |
+| `←` / `→` / `Space` | Player 1 left / right / fire |
+| `A` / `D` / `W` | Player 2 left / right / fire |
+| `T` | Tilt |
+| `Esc` | Quit |
+
 # CPU Test ROMs
 The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
 
@@ -119,3 +168,10 @@ The CPU is checked against four standard 8080 test programs not stored in this r
 | `8080EXM.COM` | Frank D. Cringle and Ian Bartholomew, with pass/fail CRCs added by Mike Douglas (2013) | GPL v2 or later |
 | `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
 | `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
+
+## Third-Party Assets
+
+This project includes the Roboto font.
+
+Roboto is licensed under the SIL Open Font License 1.1.
+See [assets/fonts/OFL.txt](assets/fonts/OFL.txt) for details.
