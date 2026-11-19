@@ -3,6 +3,8 @@
 #include "frontend/run_menu.hpp"
 
 #include <SDL3/SDL_main.h> // Unused here, but must be in main() for Windows/macOS
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <cstdio>
 #include <string>
@@ -17,36 +19,40 @@ static void print_usage(const char* program) {
 
 int main(int argc, char* argv[]) {
 
+    std::string command = argc > 1 ? argv[1] : "";
+    int result = 1;
+
     // 8080
     if (argc < 2) {
-        int result = run_menu();
-        return result;
+        result = run_menu();
     }
 
-    std::string command = argv[1];
-
     // 8080 invaders [ROM_FOLDER]
-    if (command == "invaders") {
+    else if (command == "invaders") {
         std::string folder = ""; // Default folder used
         if (argc >= 3) {
             folder = argv[2];
         }
-        int result = run_invaders(folder);
-        return result;
+        result = run_invaders(folder);
     }
 
     // 8080 cpm_test TESTPROG.COM
-    if (command == "cpm_test") {
+    else if (command == "cpm_test") {
         if (argc < 3) {
             std::printf("Usage: %s cpm_test TESTPROG.COM\n", argv[0]);
-            return 1;
+        } else {
+            std::string test_path = argv[2];
+            result = run_cpm_test(test_path);
         }
-        std::string test_path = argv[2];
-        int result = run_cpm_test(test_path);
-        return result;
     }
 
     // Unknown command
-    print_usage(argv[0]);
-    return 1;
+    else {
+        print_usage(argv[0]);
+    }
+
+    // Window cleanup
+    TTF_Quit();
+    SDL_Quit();
+    return result;
 }

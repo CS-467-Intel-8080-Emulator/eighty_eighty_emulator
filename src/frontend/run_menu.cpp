@@ -5,7 +5,6 @@
 #include "frontend/run_invaders.hpp"
 
 #include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
 
 #include <exception>
 #include <filesystem>
@@ -63,9 +62,6 @@ int run_menu() {
         SDL_Log("%s", e.what());
         result = 1;
     }
-
-    TTF_Quit();
-    SDL_Quit();
 
     return result;
 }
