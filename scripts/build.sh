@@ -8,20 +8,15 @@ set -e # Stop early if a command fails
 # https://drive.google.com/file/d/1zb7rj9H_c__12t-J0Ur3wHisPcyrhMm5/view?usp=drive_link
 ###############################################################################
 
-# Collect positional arguments passed to 8080 executable
-args=()
-while (($#)) && [[ $1 != -* ]]; do
-    args+=("$1")
-    shift
-done
-
-# Parse options
+# Sort arguments: -e and -h set options; everything else goes to 8080.
 RUNEXM=false
 HELP=false
-while getopts "eh" opt; do
-    case $opt in
-        e) RUNEXM=true;;
-        h) HELP=true;;
+args=()
+for arg in "$@"; do
+    case $arg in
+        -e) RUNEXM=true;;
+        -h) HELP=true;;
+        *)  args+=("$arg");;
     esac
 done
 

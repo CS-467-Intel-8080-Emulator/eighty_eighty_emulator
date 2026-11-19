@@ -24,7 +24,7 @@ To build, test, and run the `8080` program, run the build script for your platfo
 # macOS/Linux
 ./scripts/build.sh
 ```
-The script passes any positional arguments to the `8080` program. For example, `./scripts/build.sh \path\to\rom\folder` runs `8080 \path\to\rom\folder`). Specify any options at the end:
+The script passes any positional arguments to the `8080` program. For example, `./scripts/build.sh \path\to\rom\folder` runs `8080 \path\to\rom\folder`). Options can go before or after the arguments. The script accepts these options:
 * `-e` run the long `8080EXM` test (skipped by default).
 * `-h` prints the help.
 
