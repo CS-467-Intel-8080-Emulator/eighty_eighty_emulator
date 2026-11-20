@@ -37,22 +37,34 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SDL3)
 
 # ===============================================================
+# SDL_TTF
+# ===============================================================
+# Build SDL_TTF statically so there's no SDL_TFF.dll / .so to hunt down at runtime
+set(SDLTTF_SAMPLES OFF CACHE BOOL "" FORCE)
+set(SDLTTF_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(SDLTTF_VENDORED ON CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    SDL3_ttf
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+    GIT_TAG release-3.2.2
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(SDL3_ttf)
+
+# ===============================================================
 # MAIN PROGRAM
 # ===============================================================
-if(WIN32)
-    set(OS_NAME windows)  # 8080_windows.exe
-elseif(APPLE)
-    set(OS_NAME macos)    # 8080_macos
-else()
-    set(OS_NAME linux)    # 8080_linux
-endif()
+
+file(GLOB_RECURSE FRONTEND_SOURCES CONFIGURE_DEPENDS src/frontend/*.cpp)
 add_executable(8080
     src/main.cpp
-    src/frontend/frontend.cpp
+    ${FRONTEND_SOURCES}
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(8080 PRIVATE emu SDL3::SDL3)
-set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
+target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 install(TARGETS 8080 DESTINATION .)
 
 # ===============================================================
@@ -97,10 +109,6 @@ catch_discover_tests(cpu_spec_tests TEST_PREFIX "spec:")
 # ===============================================================
 # Tests run in the order registered: unit, spec, then cpm: and cpu-test: below.
 
-# CP/M test machine program that runs the CPU test ROMs (CpmMachine itself is in emu)
-add_executable(cpm_test src/platform/cpm_test/main.cpp)
-target_link_libraries(cpm_test PRIVATE emu)
-
 # CP/M test machine unit tests (tests/cpm)
 add_executable(cpm_machine_tests tests/cpm/test_cpm_machine.cpp)
 target_link_libraries(cpm_machine_tests PRIVATE emu Catch2::Catch2WithMain)
@@ -134,7 +142,7 @@ endwhile()
 set(CPU_TEST_PREFIX "cpu-test:")
 set(CPU_TEST_LABEL  "cpu-test")
 function(add_cpu_test rom pass_message timeout)
-    add_test(NAME ${CPU_TEST_PREFIX}${rom} COMMAND cpm_test ${ROMS}/${rom}.COM)
+    add_test(NAME ${CPU_TEST_PREFIX}${rom} COMMAND 8080 cpm_test ${ROMS}/${rom}.COM)
     set_tests_properties(${CPU_TEST_PREFIX}${rom} PROPERTIES
         PASS_REGULAR_EXPRESSION "${pass_message}"
         FAIL_REGULAR_EXPRESSION "ERROR|FAIL"
