@@ -192,7 +192,24 @@ void Menu::discover_games()
     for (const auto& entry :
          fs::directory_iterator(rom_root))
     {
-        if (entry.is_directory())
+        if (!entry.is_directory())
+        {
+            continue;
+        }
+
+        bool contains_rom_files = false;
+
+        for (const auto& file :
+             fs::directory_iterator(entry.path()))
+        {
+            if (file.is_regular_file())
+            {
+                contains_rom_files = true;
+                break;
+            }
+        }
+
+        if (contains_rom_files)
         {
             games_.push_back(
                 entry.path()
@@ -213,6 +230,11 @@ void Menu::discover_games()
 void Menu::handle_input(
     const SDL_Event& event)
 {
+    if (game_selected_)
+    {
+        return;
+    }
+
     if (event.type != SDL_EVENT_KEY_DOWN)
     {
         return;
