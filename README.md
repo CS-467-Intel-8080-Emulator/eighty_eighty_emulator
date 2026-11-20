@@ -170,8 +170,10 @@ The CPU is checked against four standard 8080 test programs not stored in this r
 | `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
 
 ## Third-Party Assets
-
 This project includes the Roboto font.
 
 Roboto is licensed under the SIL Open Font License 1.1.
 See [assets/fonts/OFL.txt](assets/fonts/OFL.txt) for details.
+
+# Contributing
+Follow the project's C++ conventions in the [Eighty Eighty Emulator C++ Style Guide](docs/STYLE.md).
