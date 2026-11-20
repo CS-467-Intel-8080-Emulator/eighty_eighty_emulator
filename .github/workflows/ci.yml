@@ -55,7 +55,7 @@ jobs:
 
       # Build an optimized (Release) version on every OS.
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build --config Release --parallel
@@ -64,7 +64,7 @@ jobs:
       - name: Test
         run: ctest --test-dir build --build-config Release --output-on-failure
 
-      # Copy game program (8080_linux, 8080_windows.exe, or 8080_macos) into distribution
+      # Copy game program (8080 or 8080.exe) into distribution
       - name: Package the game
         run: cmake --install build --config Release --prefix dist
 

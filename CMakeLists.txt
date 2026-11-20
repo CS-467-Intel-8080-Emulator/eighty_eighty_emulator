@@ -57,13 +57,6 @@ FetchContent_MakeAvailable(SDL3_ttf)
 # ===============================================================
 # MAIN PROGRAM
 # ===============================================================
-if(WIN32)
-    set(OS_NAME windows)  # 8080_windows.exe
-elseif(APPLE)
-    set(OS_NAME macos)    # 8080_macos
-else()
-    set(OS_NAME linux)    # 8080_linux
-endif()
 
 file(GLOB_RECURSE FRONTEND_SOURCES CONFIGURE_DEPENDS src/frontend/*.cpp)
 add_executable(8080
@@ -72,7 +65,6 @@ add_executable(8080
 )
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)
-set_target_properties(8080 PROPERTIES OUTPUT_NAME 8080_${OS_NAME})
 install(TARGETS 8080 DESTINATION .)
 
 # ===============================================================

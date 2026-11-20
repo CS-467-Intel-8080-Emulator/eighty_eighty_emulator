@@ -15,11 +15,25 @@ Linux only: Install SDL3's build dependencies for Ubuntu/Debian. For the depende
 ```sh
 sh scripts/install-linux-deps.sh
 ```
+# Quick Start
+To build, test, and run the `8080` program, run the build script for your platform.
+```sh
+# Windows
+.\scripts\build.bat
+
+# macOS/Linux
+./scripts/build.sh
+```
+The script passes any positional arguments to the `8080` program. For example, `./scripts/build.sh \path\to\rom\folder` runs `8080 \path\to\rom\folder`). Options can go before or after the arguments. The script accepts these options:
+* `-e` run the long `8080EXM` test (skipped by default).
+* `-h` prints the help.
+
+To run individual steps, see the subsequent sections.
 
 # Build
 Create build config folder. This step is required only on the first build or any time you delete the `build` folder. `-DCMAKE_BUILD_TYPE=Release` configures optimized builds on Linux/macOS (ignored on Windows).
 ```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 ```
 
 Build the project. `--config Release` configures optimized builds on Windows (ignored on Linux/macOS).
@@ -54,13 +68,10 @@ ctest --test-dir build --build-config Release --output-on-failure --tests-regex 
 To open the emulator menu, call the `8080` executable with no arguments. When the menu opens, press **Enter** to launch Space Invaders (our only game at the moment). The following commands assume you added the Space Invaders ROM files to the `assets/roms/invaders` folder of this repo. For more details, see [assets/roms/invaders/README.md](assets/roms/invaders/README.md).
 ```sh
 # Windows
-.\build\Release\8080_windows.exe
+.\build\Release\8080.exe
 
-# macOS
-./build/8080_macos
-
-# Linux
-./build/8080_linux
+# macOS/Linux
+./build/8080
 ```
 
 ## Run Space Invaders Directly
@@ -114,27 +125,26 @@ Then unzip and run the program.
 **Linux**:
 ```sh
 unzip 8080_linux.zip
-./8080_linux
+./8080
 ```
 
 **macOS**:
 ```sh
 unzip 8080_macos.zip
-xattr -d com.apple.quarantine 8080_macos
-./8080_macos
+xattr -d com.apple.quarantine 8080
+./8080
 ```
 The `xattr -d ...` line clears the 'downloaded from the internet' flag that the browser adds.
 
 **Windows**:
 
-Extract the executable from the zip file and double-click `8080_windows.exe`.
+Extract the executable from the `8080_windows.zip` file and double-click `8080.exe`.
 
 **Troubleshooting**:
 * Windows: If a "Windows protected your PC" dialog opens when you run the executable, click **More info** and then **Run anyway**.
 * Linux/macOS: If you get a "permission denied" error, add executable permissions to the file.
   ```sh
-  chmod +x 8080_linux
-  chmod +x 8080_macos
+  chmod +x 8080
   ```
 
 # Controls
