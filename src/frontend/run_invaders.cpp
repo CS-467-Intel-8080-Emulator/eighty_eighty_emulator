@@ -5,6 +5,7 @@
 #include "platform/invaders/invaders_controls.hpp"
 #include "platform/invaders/invaders_machine.hpp"
 #include "rom/rom_reader.hpp"
+#include "state/state.hpp"
 #include "run_invaders.hpp"
 
 #include <SDL3/SDL.h>
@@ -48,7 +49,39 @@ int run_invaders(const std::string& folder) {
             2
         );
 
-        frontend.set_input_handler([&machine](SDL_Scancode key, bool pressed) {
+        std::string quicksave
+            = (asset_root() / "states" / "invaders" / "invaders.quicksave.state").string();
+
+        frontend.set_input_handler([&machine, &quicksave](SDL_Scancode key, bool pressed) {
+            // Quicksave
+            if (key == SDL_SCANCODE_F5 && pressed) {
+                try {
+                    StateFile::write(quicksave, machine.save_state());
+                    SDL_Log("Saved state to file: %s", quicksave.c_str());
+                }
+                catch (const std::exception& e) {
+                    SDL_Log("Failed to save state to file. %s", e.what());
+                }
+                return;
+            }
+
+            // Quickload
+            if (key == SDL_SCANCODE_F9 && pressed) {
+                try {
+                    SDL_Log(
+                        machine.load_state(StateFile::read(quicksave))
+                        ? "Loaded state file: %s"
+                        : "Failed to load state file (wrong size): %s"
+                        , quicksave.c_str()
+                    );
+                }
+                catch (const std::exception& e) {
+                    SDL_Log("Failed to load state file. %s", e.what());
+                }
+                return;
+            }
+
+            // Game controls
             for (const KeyBinding& binding : KEY_BINDINGS) {
                 if (SDL_GetScancodeFromName(binding.key) == key) {
                     machine.set_input(binding.input, pressed);

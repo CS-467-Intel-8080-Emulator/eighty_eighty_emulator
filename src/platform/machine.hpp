@@ -12,9 +12,8 @@
 #include <vector>
 
 #include "platform/sound_file.hpp"
-#include <vector>
-
 #include "rom/rom_reader.hpp"
+
 enum class Input;
 
 class Machine {
@@ -42,6 +41,10 @@ public:
     // Sound files this machine wants, and where each one goes once read
     virtual std::vector<SoundFile> sound_files() const { return {}; }
     virtual bool load_sound(int /*id*/, std::vector<float> /*samples*/) { return false; }
+
+    // Save and load machine state
+    virtual std::vector<uint8_t> save_state() const = 0;
+    virtual bool load_state(const std::vector<uint8_t>& buffer) = 0;
 };
 
 #endif

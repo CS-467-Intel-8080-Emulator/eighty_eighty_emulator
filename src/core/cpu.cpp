@@ -1,6 +1,7 @@
 #include "cpu.hpp"
 #include "memory_bus.hpp"
 #include "io_bus.hpp"
+#include "state/state.hpp"
 #include "iostream"
 #include "iomanip"
 
@@ -248,6 +249,42 @@ CPU::CPU()
     pc = (pc +1) & 0xFFFF;
     current_opcode = opcode;
     return (this->*table[current_opcode])(memory);
+}
+
+// ===============================================================
+// SAVE AND LOAD STATE
+// ===============================================================
+
+void CPU::save_state(StateWriter& writer) const {
+    writer.save_u8(a);
+    writer.save_u8(b);
+    writer.save_u8(c);
+    writer.save_u8(d);
+    writer.save_u8(e);
+    writer.save_u8(h);
+    writer.save_u8(l);
+    writer.save_u16(pc);
+    writer.save_u16(sp);
+    writer.save_u8(flags);
+    writer.save_u8(static_cast<uint8_t>(interrupts_enabled));
+    writer.save_u8(static_cast<uint8_t>(ei_pending));
+    writer.save_u8(static_cast<uint8_t>(halted));
+}
+
+void CPU::load_state(StateReader& reader) {
+    a = reader.load_u8();
+    b = reader.load_u8();
+    c = reader.load_u8();
+    d = reader.load_u8();
+    e = reader.load_u8();
+    h = reader.load_u8();
+    l = reader.load_u8();
+    pc = reader.load_u16();
+    sp = reader.load_u16();
+    flags = reader.load_u8();
+    interrupts_enabled = static_cast<bool>(reader.load_u8());
+    ei_pending = static_cast<bool>(reader.load_u8());
+    halted = static_cast<bool>(reader.load_u8());
 }
 
 // ===============================================================

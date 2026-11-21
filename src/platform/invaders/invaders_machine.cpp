@@ -5,6 +5,7 @@
 
 #include "invaders_machine.hpp"
 #include "invaders_sound_files.hpp"
+#include "state/state.hpp"
 
 #include <utility>
 
@@ -49,4 +50,25 @@ void InvadersMachine::run_frame() {
     }
 
     video_.update(memory_);
+}
+
+std::vector<uint8_t> InvadersMachine::save_state() const {
+    StateWriter writer = StateWriter();
+    cpu_.save_state(writer);
+    memory_.save_state(writer); // Saves RAM and VRAM only
+    io_.save_state(writer);
+    schedule_.save_state(writer);
+    return writer.get_buffer();
+}
+
+bool InvadersMachine::load_state(const std::vector<uint8_t>& buffer) {
+    if (buffer.size() != STATE_SIZE)
+        return false;
+    StateReader reader = StateReader();
+    reader.set_buffer(buffer);
+    cpu_.load_state(reader);
+    memory_.load_state(reader);
+    io_.load_state(reader);
+    schedule_.load_state(reader);
+    return true;
 }

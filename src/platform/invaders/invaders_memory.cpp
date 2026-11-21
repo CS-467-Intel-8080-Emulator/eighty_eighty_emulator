@@ -4,6 +4,7 @@
 // https://drive.google.com/drive/folders/1ju4Le0a1KcFW42RTQtTtEUDd8LGAbAAA?usp=drive_link
 
 #include "invaders_memory.hpp"
+#include "state/state.hpp"
 
 #include <cstddef>
 
@@ -29,4 +30,16 @@ bool InvadersMemory::load_rom(const std::vector<uint8_t>& bytes, uint16_t offset
         mem_[offset + i] = bytes[i];
     }
     return true;
+}
+
+void InvadersMemory::save_state(StateWriter& writer) const {
+    for (std::size_t i = RAM_START; i < mem_.size(); i++) {
+        writer.save_u8(mem_[i]);
+    }
+}
+
+void InvadersMemory::load_state(StateReader& reader) {
+    for (std::size_t i = RAM_START; i < mem_.size(); i++) {
+        mem_[i] = reader.load_u8();
+    }
 }

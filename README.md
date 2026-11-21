@@ -158,6 +158,8 @@ Space Invaders controls:
 | `A` / `D` / `W` | Player 2 left / right / fire |
 | `T` | Tilt |
 | `Esc` | Quit |
+| `F5` | Quick save state |
+| `F9` | Quick load state |
 
 # CPU Test ROMs
 The CPU is checked against four standard 8080 test programs not stored in this repo. CMake downloads these tests from [superzazu/8080](https://github.com/superzazu/8080/tree/274ffd700b81baabea99b0963bc1260b67132185/cpu_tests) into `build/test_roms/` and verifies each file's checksum.
