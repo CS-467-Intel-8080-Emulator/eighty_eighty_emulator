@@ -13,6 +13,7 @@
 #include "platform/machine.hpp"
 
 #include "invaders_memory.hpp"
+#include "invaders_rom.hpp"
 #include "video.hpp"
 #include "interrupt_schedule.hpp"
 #include "invaders_io.hpp"
@@ -29,7 +30,8 @@ public:
     int display_height() const override { return Video::SCREEN_HEIGHT; }
     double frames_per_second() const override { return invaders::FRAMES_PER_SECOND; }
 
-    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0);
+    const std::vector<RomFile>& rom_files() const override { return INVADERS_ROM_FILES; }
+    bool load_rom(const std::vector<uint8_t>& bytes, uint16_t offset = 0) override;
     void run_frame() override;
     const uint32_t* pixels() const override { return video_.framebuffer().data(); }
 
@@ -43,12 +45,26 @@ public:
     std::vector<SoundFile> sound_files() const override;
     bool load_sound(int id, std::vector<float> samples) override;
 
+    // Save and load machine state
+    std::vector<uint8_t> save_state() const override;
+    bool load_state(const std::vector<uint8_t>& buffer) override;
+
 private:
     CPU cpu_;
     InvadersMemory memory_;
     InvadersIO io_;
     InterruptSchedule schedule_;
     Video video_;
+
+    static constexpr std::size_t STATE_SIZE
+        = 7    // CPU: 6 registers + accumulator
+        + 4    // CPU: PC + SP
+        + 1    // CPU: Flags
+        + 3    // CPU: interrupts_enabled (u8) + ei_pending (u8) + halted (u8)
+        + 8192 // Memory: 8K RAM/VRAM
+        + 3    // Shift register: value_ (u16) + offset_ (u8)
+        + 2    // Sound board: port3_ (u8) + port5_ (u8)
+        + 6;   // Interrupt schedule: frame_cycles_ (u32) + mid_screen_raised_ (u8) + pending_rst_ (u8)
 };
 
 #endif

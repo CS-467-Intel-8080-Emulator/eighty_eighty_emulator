@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <optional>
 
+class StateWriter;
+class StateReader;
+
 // Handles frame count and raises interrupts:
 // RST 1 at mid-frame and RST 2 at end of frame (vblank).
 
@@ -19,6 +22,10 @@ public:
     std::optional<uint8_t> pending_rst() const { return pending_rst_; }
 
     uint32_t frame_cycles() const { return frame_cycles_; }
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     uint32_t frame_cycles_ = 0;

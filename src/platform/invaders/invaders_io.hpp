@@ -8,6 +8,9 @@
 #include "shift_register.hpp"
 #include "sound.hpp"
 
+class StateWriter;
+class StateReader;
+
 // Space Invaders port map: routes the CPU's IN and OUT to the board's devices
 class InvadersIO : public IOBus {
 public:
@@ -16,6 +19,10 @@ public:
     InputPorts& inputs() { return inputs_; }
 
     InvadersSound& sound() { return sound_; }
+
+    // Save and load state
+    void save_state(StateWriter& writer) const;
+    void load_state(StateReader& reader);
 
 private:
     // IN ports

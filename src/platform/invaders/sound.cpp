@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <utility>
 
+#include "state/state.hpp"
+
 namespace {
     // Volume changes by this much per sample, so a full fade takes 10 ms
     constexpr float FADE_STEP = 1.0f / (0.010f * InvadersSound::SAMPLE_RATE);
@@ -98,4 +100,14 @@ void InvadersSound::render(float* out, int count) {
         amp_gain_ = fade_toward(amp_gain_, amp_target);
         out[i] = std::clamp(0.5f * amp_gain_ * mix, -1.0f, 1.0f);
     }
+}
+
+void InvadersSound::save_state(StateWriter& writer) const {
+    writer.save_u8(port3_.load());
+    writer.save_u8(port5_.load());
+}
+
+void InvadersSound::load_state(StateReader& reader) {
+    port3_.store(reader.load_u8(), std::memory_order_release);
+    port5_.store(reader.load_u8(), std::memory_order_release);
 }

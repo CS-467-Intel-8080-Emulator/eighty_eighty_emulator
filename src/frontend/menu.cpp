@@ -52,6 +52,8 @@ namespace
             return;
         }
 
+        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+
         SDL_FRect dst =
         {
             x,
