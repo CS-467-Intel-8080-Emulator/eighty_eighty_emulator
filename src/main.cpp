@@ -59,8 +59,7 @@ int main(int argc, char* argv[])
             // -------------------------------------------------------------
 
             const auto rom_path =
-                asset_root() /
-                "roms" /
+                get_rom_root() /
                 selected_game;
 
             InvadersMachine machine;
@@ -97,15 +96,11 @@ int main(int argc, char* argv[])
                 frontend.set_input_handler(
                     [&machine](SDL_Scancode key, bool pressed)
                     {
-                        SDL_Log("Received: %s",
-                                SDL_GetScancodeName(key));
 
                         for (const KeyBinding& binding : KEY_BINDINGS)
                         {
                             if (SDL_GetScancodeFromName(binding.key) == key)
                             {
-                                SDL_Log("Matched binding: %s", binding.key);
-
                                 machine.set_input(
                                     binding.input,
                                     pressed);
