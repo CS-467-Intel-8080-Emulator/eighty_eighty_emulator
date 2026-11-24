@@ -5,16 +5,15 @@
 
 # Eighty Eighty Emulator C++ Style Guide
 
-> **Status: Initial version.** All standards subject to team discussion. Tooling
-> has not yet been implemented, and existing code has not been updated according
-> to these conventions.
+> **Status: Initial release.** All standards subject to team discussion.
+> Existing code has not been updated according to these conventions.
 
 This style guide is based on
 [Google C++ Style](https://google.github.io/styleguide/cppguide.html), adjusted
 to match the conventions this team already uses. Formatting rules (indentation,
-braces, spacing, includes) will be automatically enforced by `clang-format` for
-new code modifications (TODO). Naming, semantics, and architectural organization
-are enforced in code review.
+braces, spacing, includes) are automatically enforced by `clang-format` for new
+code modifications (see [FORMATTING.md](FORMATTING.md)). Naming, semantics, and
+architectural organization are enforced in code review.
 
 ## Files
 
