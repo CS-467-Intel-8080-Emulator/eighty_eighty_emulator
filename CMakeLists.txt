@@ -67,6 +67,10 @@ add_executable(8080
 target_include_directories(8080 PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(8080 PRIVATE emu SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 install(TARGETS 8080 DESTINATION .)
+install(DIRECTORY assets/fonts DESTINATION assets)
+install(FILES assets/roms/invaders/README.md DESTINATION assets/roms/invaders)
+install(FILES assets/sounds/invaders/README.md DESTINATION assets/sounds/invaders)
+install(FILES LICENSE.md DESTINATION .)
 
 # ===============================================================
 # UNIT TESTS
