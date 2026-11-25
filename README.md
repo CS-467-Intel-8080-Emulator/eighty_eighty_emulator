@@ -2,11 +2,16 @@
 
 [![CI](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions/workflows/ci.yml/badge.svg)](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/actions/workflows/ci.yml)
 
-An Intel 8080 emulator. There are two ways to get it:
+An Intel 8080 arcade emulator. It currently supports Space Invaders. There are two ways to get it:
 * [Option 1: Download a release](#option-1-download-a-release). Download, add the ROM files, and run. No build tools needed.
 * [Option 2: Build from source](#option-2-build-from-source). Compile, test, and run the emulator yourself.
 
 Either way, you must supply your own Space Invaders ROM files. See [Add Game Files](#add-game-files).
+
+**System Requirements**: We tested the emulator on the following operating systems. It may also run on other versions or distributions, but we can't guarantee it.
+* Windows: Windows 10 or later
+* macOS: macOS 26 or later
+* Linux: Ubuntu 26.04 or later
 
 # Option 1: Download a Release
 1. On the [Releases](https://github.com/CS-467-Intel-8080-Emulator/eighty_eighty_emulator/releases) page, under **Assets** for the newest release, download the zip file for your platform:
@@ -19,6 +24,7 @@ Either way, you must supply your own Space Invaders ROM files. See [Add Game Fil
    The folder should look like this:
    ```
    8080             (8080.exe on Windows)
+   LICENSE.md
    assets/
      fonts/
      roms/invaders/     invaders.e, invaders.f, invaders.g, invaders.h
@@ -192,6 +198,8 @@ Space Invaders controls:
 | `F5` | Quick save state |
 | `F9` | Quick load state |
 
+To start a game, press `C` to insert a coin, then press `1` for one player or `2` for two players.
+
 Quick save writes to `assets/states/invaders/invaders.quicksave.state`, and quick load reads from it.
 
 # CPU Test ROMs
@@ -204,6 +212,9 @@ The CPU is checked against four standard 8080 test programs not stored in this r
 | `TST8080.COM` | Microcosm Associates (Kelly Smith), 1980; updated by Mike Douglas (2012) | None stated |
 | `CPUTEST.COM` | SuperSoft Associates, 1981 (Diagnostics II suite) | None stated |
 
+# License
+This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
+
 # Third-Party Assets
 This project includes the Roboto font.
 
@@ -211,4 +222,4 @@ Roboto is licensed under the SIL Open Font License 1.1.
 See [assets/fonts/OFL.txt](assets/fonts/OFL.txt) for details.
 
 # Contributing
-Follow the project's C++ conventions in the [Eighty Eighty Emulator C++ Style Guide](docs/STYLE.md).
+Follow the project's C++ conventions in the [Eighty Eighty Emulator C++ Style Guide](docs/STYLE.md) and review the [formatting guidelines](docs/FORMATTING.md).
