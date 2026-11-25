@@ -86,5 +86,12 @@ newer. To always use the pinned version, specify the path explicitly (find it
 with `which clang-format` or `where.exe clang-format`):
 
 ```jsonc
+// Windows
+"C_Cpp.clang_format_path": "C:\Users\you\.local\bin\clang-format.exe"
+
+// macOS
 "C_Cpp.clang_format_path": "/Users/you/.local/bin/clang-format"
+
+// Linux
+"C_Cpp.clang_format_path": "/home/you/.local/bin/clang-format"
 ```
