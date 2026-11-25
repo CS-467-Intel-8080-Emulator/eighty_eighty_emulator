@@ -1,13 +1,32 @@
-ROM Path Configuration
+# ROM Path Configuration
 
-Leave rom_path.txt empty to use assets/roms.
+By default, the emulator searches for ROMs in:
 
-You may specify:
-- an absolute path
-- a path relative to the project root
+assets/roms
 
-Examples:
+To use a different ROM location, enter a path in:
 
-/Users/name/ROMs
+assets/config/rom_path.txt
 
-assets/my_roms
+If the file is empty, the default ROM directory will be used.
+
+Both absolute and relative paths are supported.
+
+## Expected Directory Structure
+
+The configured ROM directory must contain one subdirectory per game.
+
+Example:
+
+ROM_Holder/
+├── invaders/
+│   ├── invaders.h
+│   ├── invaders.g
+│   ├── invaders.f
+│   └── invaders.e
+├── lunar_rescue/
+│   └── ...
+└── space_chaser/
+    └── ...
+
+ROM files placed directly in the configured ROM directory will not be discovered by the menu.
