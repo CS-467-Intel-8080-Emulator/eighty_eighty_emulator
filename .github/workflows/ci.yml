@@ -64,7 +64,7 @@ jobs:
       - name: Test
         run: ctest --test-dir build --build-config Release --output-on-failure
 
-      # Copy game program (8080 or 8080.exe) into distribution
+      # Copy game program (8080 or 8080.exe) and assets folder into distribution
       - name: Package the game
         run: cmake --install build --config Release --prefix dist
 
