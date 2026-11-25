@@ -1,0 +1,42 @@
+# This file was generated with the help of Claude (Claude Code, model Claude
+# Opus 5.5). The accompanying transcript documents the GenAI interaction that
+# led to this code.
+# https://drive.google.com/drive/folders/1OnKHKWv8dSEi50XEmH_wwSpZn72022D8?usp=drive_link
+
+name: Format
+on:
+  push:
+    paths: ['**.cpp', '**.hpp', '.clang-format', '.github/workflows/format.yml']
+  pull_request:
+    branches: [main]
+    paths: ['**.cpp', '**.hpp', '.clang-format', '.github/workflows/format.yml']
+  workflow_dispatch:
+
+# A newer push to the same branch or PR cancels the run still in progress
+concurrency:
+  group: format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history, so the merge-base with main can be found
+
+      # Pinned so CI and local formatting match. Update together with docs/FORMATTING.md.
+      - name: Install clang-format
+        run: pipx install clang-format==23.1.5
+
+      # Compare against the point where this branch split from main, so only this
+      # branch's changes are checked (not changes merged into main since then).
+      # For a PR, the checkout is the PR merged into main, so this checks the PR's changes.
+      # Fails if any changed line needs formatting, and prints the fix as a diff.
+      - name: Check formatting of changed lines
+        run: |
+          base=$(git merge-base origin/main HEAD)
+          if ! git clang-format --diff --extensions cpp,hpp,h "$base"; then
+            echo "::error::Changed lines need formatting. Run: git clang-format \$(git merge-base origin/main HEAD) (see docs/FORMATTING.md)"
+            exit 1
+          fi

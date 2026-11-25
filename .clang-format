@@ -1,0 +1,68 @@
+# This file was generated with the help of Claude (Claude Code, model Claude
+# Opus 5.5). The accompanying transcript documents the GenAI interaction that
+# led to this file.
+# https://drive.google.com/drive/folders/1OnKHKWv8dSEi50XEmH_wwSpZn72022D8?usp=drive_link
+#
+# clang-format configuration. Implements the formatting rules in docs/STYLE.md.
+# Tested with clang-format 23.1.5; see docs/FORMATTING.md and
+# .github/workflows/format.yml for the pinned version. Options not listed here
+# come from Google style.
+
+---
+Language: Cpp
+BasedOnStyle: Google
+Standard: c++17
+
+# --- Whitespace and line length ---
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 100
+LineEnding: LF
+MaxEmptyLinesToKeep: 1
+InsertNewlineAtEOF: true
+KeepEmptyLines:
+    AtEndOfFile: false
+    AtStartOfBlock: false
+    AtStartOfFile: false
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+AlignTrailingComments:
+    Kind: Always
+AlignConsecutiveAssignments: None # avoids realigning neighbor lines on each edit
+
+# --- Braces ---
+BreakBeforeBraces: Attach
+# InsertBraces: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortCaseLabelsOnASingleLine: true
+
+# --- Indentation of scopes ---
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: All
+FixNamespaceComments: false
+
+# --- Pointers and references ---
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# --- Includes ---
+# STYLE.md include order, with a blank line between groups and each group sorted:
+#   0. The file's own header (.cpp files: foo.cpp -> "foo.hpp")
+#   1. C++ standard library:  <cstdint>, <vector>
+#   2. Third-party libraries: <SDL3/SDL.h>, <catch2/catch_test_macros.hpp>
+#   3. Project headers:       "core/cpu.hpp"
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeIsMainRegex: "$"
+IncludeCategories:
+    - Regex: "^<[a-z_0-9]+>$" # no slash or extension: standard library
+      Priority: 1
+    - Regex: "^<.*>$" # any other angle-bracket include: third party
+      Priority: 2
+    - Regex: '^".*"$'
+      Priority: 3
