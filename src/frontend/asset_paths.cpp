@@ -6,6 +6,11 @@
 
 namespace fs = std::filesystem;
 
+// ======================================================
+// Asset Root Discovery
+// ======================================================
+// Locate the project's assets directory. 
+// Supports running the emulator from either the repository root or the build directory.
 fs::path asset_root()
 {
     if (fs::exists("assets"))
@@ -22,6 +27,11 @@ fs::path asset_root()
         "Unable to locate assets directory");
 }
 
+// ======================================================
+// ROM Directory Resolution
+// ======================================================
+// Determine where ROM sets should be loaded from.
+// If a path is configured in assets/config/rom_path.txt use that path. Otherwise fall back to assets/roms.
 fs::path get_rom_root()
 {
     const fs::path config_file =
@@ -38,6 +48,7 @@ fs::path get_rom_root()
 
     std::string path_string;
 
+    // An empty configuration file indicates that the default ROM directory should be used.
     if (!std::getline(config, path_string) ||
         path_string.empty())
     {
@@ -46,7 +57,7 @@ fs::path get_rom_root()
 
     fs::path rom_path(path_string);
 
-    // Resolve relative paths against the project root.
+    // Resolve relative paths against the project root so the same configuration works when launching from either the root directory or the build directory.
     if (rom_path.is_relative())
     {
         rom_path =
@@ -56,6 +67,8 @@ fs::path get_rom_root()
 
     rom_path = fs::weakly_canonical(rom_path);
 
+    // A configured path must exist and be a directory.
+    // Invalid user configuration should be reported instead of silently falling back to the default.
     if (!fs::exists(rom_path) ||
         !fs::is_directory(rom_path))
     {
