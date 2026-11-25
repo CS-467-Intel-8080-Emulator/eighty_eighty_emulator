@@ -29,41 +29,40 @@ fs::path get_rom_root()
         "config" /
         "rom_path.txt";
 
-    if (fs::exists(config_file))
+    if (!fs::exists(config_file))
     {
-        std::ifstream config(config_file);
-
-        std::string path;
-
-        if (std::getline(config, path) &&
-            !path.empty() &&
-            fs::exists(path) &&
-            fs::is_directory(path))
-        {
-            return fs::path(path);
-        }
+        return asset_root() / "roms";
     }
 
-    return asset_root() / "roms";
-}
+    std::ifstream config(config_file);
 
-void save_rom_root(const fs::path& path)
-{
-    const fs::path config_dir =
-        asset_root() / "config";
+    std::string path_string;
 
-    fs::create_directories(config_dir);
+    if (!std::getline(config, path_string) ||
+        path_string.empty())
+    {
+        return asset_root() / "roms";
+    }
 
-    const fs::path config_file =
-        config_dir / "rom_path.txt";
+    fs::path rom_path(path_string);
 
-    std::ofstream config(config_file);
+    // Resolve relative paths against the project root.
+    if (rom_path.is_relative())
+    {
+        rom_path =
+            asset_root().parent_path() /
+            rom_path;
+    }
 
-    if (!config)
+    rom_path = fs::weakly_canonical(rom_path);
+
+    if (!fs::exists(rom_path) ||
+        !fs::is_directory(rom_path))
     {
         throw std::runtime_error(
-            "Unable to write ROM path configuration");
+            "Configured ROM directory does not exist: "
+            + rom_path.string());
     }
 
-    config << path.string();
+    return rom_path;
 }
