@@ -24,7 +24,7 @@ int run_invaders(const std::string& folder) {
         std::string rom_folder = folder;
         bool use_default = rom_folder.empty();
         if (use_default) {
-            rom_folder = (asset_root() / "roms" / "invaders").string();
+            rom_folder = (get_rom_root() / "invaders").string();
         }
 
         InvadersMachine machine;
