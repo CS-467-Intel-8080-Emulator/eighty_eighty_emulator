@@ -71,6 +71,7 @@ install(DIRECTORY assets/fonts DESTINATION assets)
 install(FILES assets/roms/invaders/README.md DESTINATION assets/roms/invaders)
 install(FILES assets/sounds/invaders/README.md DESTINATION assets/sounds/invaders)
 install(FILES LICENSE.md DESTINATION .)
+install(DIRECTORY assets/config DESTINATION assets)
 
 # ===============================================================
 # UNIT TESTS

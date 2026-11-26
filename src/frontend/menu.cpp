@@ -151,7 +151,7 @@ Menu::~Menu()
 void Menu::initialize()
 {
     const fs::path font_path =
-    asset_root() /
+        asset_root() /
         "fonts" /
         "Roboto-Regular.ttf";
 
@@ -177,7 +177,7 @@ void Menu::discover_games()
     games_.clear();
 
     const fs::path rom_root =
-        asset_root() / "roms";
+        get_rom_root();
 
     if (!fs::exists(rom_root))
     {
@@ -221,6 +221,8 @@ void Menu::discover_games()
     std::sort(
         games_.begin(),
         games_.end());
+    
+    selected_ = 0;
 }
 
 // ======================================================

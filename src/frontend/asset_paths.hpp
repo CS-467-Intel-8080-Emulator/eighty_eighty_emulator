@@ -4,5 +4,6 @@
 #include <filesystem>
 
 std::filesystem::path asset_root();
+std::filesystem::path get_rom_root();
 
 #endif

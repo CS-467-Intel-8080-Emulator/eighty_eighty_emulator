@@ -53,7 +53,7 @@ int run_menu() {
         bool user_chose_game = !selected_game.empty();
         if (user_chose_game)
         {
-            std::filesystem::path rom_folder = asset_root() / "roms" / selected_game;
+            std::filesystem::path rom_folder = get_rom_root() / selected_game;
             result = run_invaders(rom_folder.string());
         }
     }
