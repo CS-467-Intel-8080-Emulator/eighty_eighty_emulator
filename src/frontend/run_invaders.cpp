@@ -102,8 +102,22 @@ int run_invaders(const std::string& folder) {
             machine.render_audio(out, count);
         });
 
+        // One emulated frame length in nanoseconds
+        const Uint64 frame_ns = Uint64(1e9 / machine.frames_per_second());
+        Uint64 previous_ns = SDL_GetTicksNS();
+        Uint64 accumulator_ns = 0;
+
         while (frontend.handle_events()) {
-            machine.run_frame();
+            Uint64 now_ns = SDL_GetTicksNS();
+            accumulator_ns += now_ns - previous_ns;
+            previous_ns = now_ns;
+
+            // Run emulated frames that have accumulated
+            while (accumulator_ns >= frame_ns) {
+                machine.run_frame();
+                accumulator_ns -= frame_ns;
+            }
+
             frontend.present(machine.pixels());
         }
     } catch (const std::exception& e) {
