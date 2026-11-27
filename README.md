@@ -222,4 +222,4 @@ Roboto is licensed under the SIL Open Font License 1.1.
 See [assets/fonts/OFL.txt](assets/fonts/OFL.txt) for details.
 
 # Contributing
-Follow the project's C++ conventions in the [Eighty Eighty Emulator C++ Style Guide](docs/STYLE.md) and review the [formatting guidelines](docs/FORMATTING.md).
+Follow the project's C++ conventions in the [Eighty Eighty Emulator C++ Style Guide](docs/STYLE.md).

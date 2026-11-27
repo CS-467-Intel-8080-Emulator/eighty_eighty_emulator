@@ -12,9 +12,8 @@
 This style guide is based on
 [Google C++ Style](https://google.github.io/styleguide/cppguide.html), adjusted
 to match the conventions this team already uses. Formatting rules (indentation,
-braces, spacing, includes) will be automatically enforced by `clang-format` for
-new code modifications (TODO). Naming, semantics, and architectural organization
-are enforced in code review.
+braces, spacing, includes) are not currently enforced by automated tooling.
+Naming, semantics, and architectural organization are enforced in code review.
 
 ## Files
 
@@ -84,7 +83,7 @@ line between groups, sorted alphabetically within each group:
     ```
 
 - Prefer braces for all control statement bodies, and place bodies on their own
-  lines (not automatically enforced by `clang-format`):
+  lines:
 
     ```cpp
     if (cycles >= max_cycles) {
